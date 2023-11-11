@@ -119,4 +119,36 @@ theorem type_of_is_inversion {x₁ : Expr} {ety : EntityType} {c₁ c₂ : Capab
         exists ety', c₁'
         simp only [h₁, and_self]
 
+theorem getAttrInRecord_has_empty_capabilities {x₁ : Expr} {a : Attr} {c₁ c₂ : Capabilities} {rty : RecordType} {ty ty₁ : CedarType} :
+  getAttrInRecord ty rty x₁ a c₁ = Except.ok (ty₁, c₂) →
+  c₂ = ∅
+:= by
+  intro h₁
+  simp [getAttrInRecord] at h₁
+  split at h₁ <;> simp [ok, err] at h₁
+  simp [h₁]
+  split at h₁ <;> simp at h₁
+  simp [h₁]
+
+theorem type_of_getAttr_inversion {x₁ : Expr} {a : Attr} {c₁ c₂ : Capabilities} {env : Environment} {ty : CedarType}
+  (h₁ : typeOf (Expr.getAttr x₁ a) c₁ env = Except.ok (ty, c₂)) :
+  c₂ = ∅ ∧
+  ∃ c₁',
+    (∃ ety, typeOf x₁ c₁ env = Except.ok (.entity ety, c₁')) ∨
+    (∃ rty, typeOf x₁ c₁ env = Except.ok (.record rty, c₁'))
+:= by
+  simp [typeOf] at h₁
+  cases h₂ : typeOf x₁ c₁ env <;> simp [h₂] at h₁
+  case ok res =>
+    rcases res with ⟨ty₁, c₁'⟩
+    simp [typeOfGetAttr] at h₁
+    split at h₁ <;> try contradiction
+    case mk.h_1 =>
+      simp
+      apply getAttrInRecord_has_empty_capabilities h₁
+    case mk.h_2 =>
+      simp
+      split at h₁ <;> try simp [err] at h₁
+      apply getAttrInRecord_has_empty_capabilities h₁
+
 end Cedar.Thm

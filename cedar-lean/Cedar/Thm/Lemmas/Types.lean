@@ -174,7 +174,6 @@ theorem instance_of_string_is_string {v₁ : Value} :
   rename_i y
   exists y
 
-
 theorem instance_of_entity_type_is_entity {ety : EntityType} :
   InstanceOfType v₁ (.entity ety) →
   ∃ euid, euid.ty = ety ∧ v₁ = .prim (.entityUID euid)
@@ -185,6 +184,53 @@ theorem instance_of_entity_type_is_entity {ety : EntityType} :
   simp [InstanceOfEntityType] at h₁
   exists euid
   simp [h₁]
+
+theorem instance_of_record_type_is_record {rty : RecordType} :
+  InstanceOfType v₁ (.record rty) →
+  ∃ r, v₁ = .record r
+:= by
+  intro h₁
+  cases h₁
+  rename_i r _ _
+  exists r
+
+theorem instance_of_attribute_type {r : Map Attr Value} {v : Value} {rty : RecordType} {a : Attr} {aty : CedarType} {qaty : QualifiedType}
+  (h₁ : InstanceOfType (.record r) (.record rty))
+  (h₂ : rty.find? a = .some qaty)
+  (h₃ : qaty.getType = aty)
+  (h₄ : r.find? a = .some v) :
+  InstanceOfType v aty
+:= by
+  cases h₁
+  rename_i h₅ _
+  rw [←h₃]
+  apply h₅ a v qaty h₂ h₄
+
+theorem required_attribute_is_present {r : Map Attr Value} {rty : RecordType} {a : Attr} {aty : CedarType}
+  (h₁ : InstanceOfType (.record r) (.record rty))
+  (h₂ : rty.find? a = .some (Qualified.required aty)) :
+  ∃ v, r.find? a = .some v
+:= by
+  cases h₁
+  rename_i h₃
+  apply Map.contains_implies_some_find?
+  apply h₃ _ _ h₂
+  simp [Qualified.isRequired]
+
+theorem well_typed_entity_attributes {env : Environment} {request : Request} {entities : Entities} {uid: EntityUID} {d: EntityData} {rty : RecordType}
+  (h₁ : RequestAndEntitiesMatchEnvironment env request entities)
+  (h₂ : Map.find? entities uid = some d)
+  (h₃ : EntityTypeStore.attrs? env.ets uid.ty = some rty) :
+  InstanceOfType d.attrs (.record rty)
+:= by
+  rcases h₁ with ⟨_, h₁, _⟩
+  simp [InstanceOfEntityTypeStore] at h₁
+  specialize h₁ uid d h₂
+  rcases h₁ with ⟨rty', _, h₁₂, h₁, _⟩
+  unfold EntityTypeStore.attrs? at h₃
+  simp [h₁₂] at h₃
+  subst h₃
+  exact h₁
 
 theorem instance_of_type_bool_is_bool (v : Value) (ty : CedarType) :
   InstanceOfType v ty →
