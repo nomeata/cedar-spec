@@ -61,11 +61,13 @@ inductive InstanceOfType : Value → CedarType → Prop :=
       (h₁ : forall v, v ∈ s → InstanceOfType v ty) :
       InstanceOfType (.set s) (.set ty)
   | instance_of_record (r : Map Attr Value) (rty : RecordType)
+      -- if an attribute is present in the record, then it is present in the type
+      (h₁ : ∀ (k : Attr), r.contains k → rty.contains k)
       -- if an attribute is present, then it has the expected type
-      (h₁ : ∀ (k : Attr) (v : Value) (qty : QualifiedType),
-        rty.find? k = some qty → r.find? k = some v → InstanceOfType v qty.getType)
+      (h₂ : ∀ (k : Attr) (v : Value) (qty : QualifiedType),
+        r.find? k = some v → rty.find? k = some qty → InstanceOfType v qty.getType)
       -- required attributes are present
-      (h₂ : ∀ (k : Attr) (qty : QualifiedType), rty.find? k = some qty → qty.isRequired → r.contains k) :
+      (h₃ : ∀ (k : Attr) (qty : QualifiedType), rty.find? k = some qty → qty.isRequired → r.contains k) :
       InstanceOfType (.record r) (.record rty)
   | instance_of_ext (x : Ext) (xty : ExtType)
       (h₁ : InstanceOfExtType x xty) :
@@ -152,9 +154,7 @@ theorem instance_of_anyBool_is_bool {v₁ : Value} :
 := by
   intro h₁
   cases h₁ with
-  | instance_of_bool b _ h₁ =>
-    apply Exists.intro b
-    rfl
+  | instance_of_bool b _ h₁ => exists b
 
 theorem instance_of_int_is_int {v₁ : Value} :
   InstanceOfType v₁ CedarType.int →
@@ -191,7 +191,7 @@ theorem instance_of_record_type_is_record {rty : RecordType} :
 := by
   intro h₁
   cases h₁
-  rename_i r _ _
+  rename_i r _ _ _
   exists r
 
 theorem instance_of_attribute_type {r : Map Attr Value} {v : Value} {rty : RecordType} {a : Attr} {aty : CedarType} {qaty : QualifiedType}
@@ -202,9 +202,21 @@ theorem instance_of_attribute_type {r : Map Attr Value} {v : Value} {rty : Recor
   InstanceOfType v aty
 := by
   cases h₁
-  rename_i h₅ _
+  rename_i _ h₅ _
   rw [←h₃]
-  apply h₅ a v qaty h₂ h₄
+  apply h₅ a v qaty h₄ h₂
+
+theorem absent_attribute_is_absent {r : Map Attr Value} {rty : RecordType} {a : Attr}
+  (h₁ : InstanceOfType (.record r) (.record rty))
+  (h₂ : rty.find? a = .none) :
+  r.find? a = .none
+:= by
+  cases h₁
+  case instance_of_record h₃ _ _ =>
+    by_contra h₄
+    simp [Option.ne_none_iff_exists', ←Map.contains_iff_some_find?] at h₄
+    specialize h₃ a h₄
+    simp [Map.contains_iff_some_find?, h₂] at h₃
 
 theorem required_attribute_is_present {r : Map Attr Value} {rty : RecordType} {a : Attr} {aty : CedarType}
   (h₁ : InstanceOfType (.record r) (.record rty))
@@ -213,7 +225,7 @@ theorem required_attribute_is_present {r : Map Attr Value} {rty : RecordType} {a
 := by
   cases h₁
   rename_i h₃
-  apply Map.contains_implies_some_find?
+  rw [←Map.contains_iff_some_find?]
   apply h₃ _ _ h₂
   simp [Qualified.isRequired]
 
@@ -248,29 +260,23 @@ theorem bool_type_is_inhabited (bty : BoolType) :
 := by
   simp [InstanceOfBoolType]
   cases bty
-  case tt => apply Exists.intro true; simp only
-  all_goals {
-    apply Exists.intro false; simp only
-  }
+  case tt => exists true
+  all_goals { exists false }
 
 theorem entity_type_is_inhabited (ety : EntityType) :
   ∃ euid, InstanceOfEntityType euid ety
 := by
   simp [InstanceOfEntityType]
-  apply Exists.intro (EntityUID.mk ety default)
-  simp only
+  exists (EntityUID.mk ety default)
 
 theorem ext_type_is_inhabited (xty : ExtType) :
   ∃ x, InstanceOfExtType x xty
 := by
   simp [InstanceOfExtType]
   cases xty
-  case ipAddr =>
-    apply Exists.intro (Ext.ipaddr (default : IPAddr))
-    simp only
-  case decimal =>
-    apply Exists.intro (Ext.decimal (default : Ext.Decimal))
-    simp only
+  case ipAddr  => exists (Ext.ipaddr (default : IPAddr))
+  case decimal => exists (Ext.decimal (default : Ext.Decimal))
+
 
 mutual
 theorem type_is_inhabited (ty : CedarType) :
@@ -279,37 +285,38 @@ theorem type_is_inhabited (ty : CedarType) :
   match ty with
   | .bool bty =>
     rcases (bool_type_is_inhabited bty) with ⟨b, h₁⟩
-    apply Exists.intro (.prim (.bool b))
+    exists (.prim (.bool b))
     apply InstanceOfType.instance_of_bool _ _ h₁
   | .int =>
-    apply Exists.intro (.prim (.int default))
+    exists (.prim (.int default))
     apply InstanceOfType.instance_of_int
   | .string =>
-    apply Exists.intro (.prim (.string default))
+    exists (.prim (.string default))
     apply InstanceOfType.instance_of_string
   | .entity ety =>
     rcases (entity_type_is_inhabited ety) with ⟨euid, h₁⟩
-    apply Exists.intro (.prim (.entityUID euid))
+    exists (.prim (.entityUID euid))
     apply InstanceOfType.instance_of_entity _ _ h₁
   | .set ty₁ =>
-    apply Exists.intro (.set Set.empty)
+    exists (.set Set.empty)
     apply InstanceOfType.instance_of_set
     intro v₁ h₁
     rcases (Set.in_set_means_list_non_empty v₁ Set.empty h₁) with h₂
     simp [Set.empty] at h₂
   | .ext xty =>
     rcases (ext_type_is_inhabited xty) with ⟨x, h₁⟩
-    apply Exists.intro (.ext x)
+    exists (.ext x)
     apply InstanceOfType.instance_of_ext _ _ h₁
   | .record rty =>
-    rcases (record_type_is_inhabited rty) with ⟨r, h₁, h₂⟩
-    apply Exists.intro (.record r)
-    apply InstanceOfType.instance_of_record _ _ h₁ h₂
+    rcases (record_type_is_inhabited rty) with ⟨r, h₁, h₂, h₃⟩
+    exists (.record r)
+    apply InstanceOfType.instance_of_record _ _ h₁ h₂ h₃
 
 theorem record_type_is_inhabited (rty : RecordType) :
   ∃ (r : Map Attr Value),
+    (∀ (k : Attr), r.contains k → rty.contains k) ∧
     (∀ (k : Attr) (v : Value) (qty : QualifiedType),
-      rty.find? k = some qty → r.find? k = some v → InstanceOfType v qty.getType) ∧
+      r.find? k = some v → rty.find? k = some qty → InstanceOfType v qty.getType) ∧
     (∀ (k : Attr) (qty : QualifiedType), rty.find? k = some qty → qty.isRequired → r.contains k)
 := by sorry
 

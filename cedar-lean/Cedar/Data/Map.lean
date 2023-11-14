@@ -59,15 +59,15 @@ def keys {α β} (m : Map α β) : Set α :=
 def values {α β} (m : Map α β) : Set β :=
   Set.mk (m.kvs.map Prod.snd)
 
-/-- Returns true if `m` contains a mapping for the key `k`. -/
-def contains {α β} [BEq α] (m : Map α β) (k : α) : Bool :=
-  (m.kvs.find? (fun ⟨k', _⟩ => k' == k)).isSome
-
 /-- Returns the binding for `k` in `m`, if any. -/
 def find? {α β} [BEq α] (m : Map α β) (k : α) : Option β :=
   match m.kvs.find? (fun ⟨k', _⟩ => k' == k) with
   | some (_, v) => some v
   | _           => none
+
+/-- Returns true if `m` contains a mapping for the key `k`. -/
+def contains {α β} [BEq α] (m : Map α β) (k : α) : Bool :=
+  (m.find? k).isSome
 
 /-- Returns the binding for `k` in `m` or `err` if none is found. -/
 def findOrErr {α β ε} [BEq α] (m : Map α β) (k : α) (err: ε) : Except ε β :=
@@ -109,14 +109,13 @@ theorem in_list_in_map {α : Type u} (k : α) (v : β) (m : Map α β) :
     simp [h0]
   apply h1
 
-theorem contains_implies_some_find? {α β} [BEq α] {m : Map α β} {k : α} :
-  m.contains k → ∃ v, m.find? k = .some v
-:= by
-  simp [contains, find?]
-  intro h₁
-  simp [Option.isSome_iff_exists] at h₁
-  rcases h₁ with ⟨kv, h₁⟩
-  simp [h₁]
+theorem contains_iff_some_find? {α β} [BEq α] {m : Map α β} {k : α} :
+  m.contains k ↔ ∃ v, m.find? k = .some v
+:= by simp [contains, Option.isSome_iff_exists]
+
+theorem not_contains_of_empty {α β} [BEq α] (k : α) :
+  ¬ (Map.empty : Map α β).contains k
+:= by simp [contains, empty, find?, List.find?]
 
 end Map
 

@@ -151,4 +151,31 @@ theorem type_of_getAttr_inversion {x₁ : Expr} {a : Attr} {c₁ c₂ : Capabili
       split at h₁ <;> try simp [err] at h₁
       apply getAttrInRecord_has_empty_capabilities h₁
 
+theorem type_of_hasAttr_inversion {x₁ : Expr} {a : Attr} {c₁ c₂ : Capabilities} {env : Environment} {ty : CedarType}
+  (h₁ : typeOf (Expr.hasAttr x₁ a) c₁ env = Except.ok (ty, c₂)) :
+  (c₂ = ∅ ∨ c₂ = Capabilities.singleton x₁ a) ∧
+  ∃ c₁',
+    (∃ ety, typeOf x₁ c₁ env = Except.ok (.entity ety, c₁')) ∨
+    (∃ rty, typeOf x₁ c₁ env = Except.ok (.record rty, c₁'))
+:= by
+  simp [typeOf, typeOfHasAttr] at h₁
+  cases h₂ : typeOf x₁ c₁ env <;> simp [h₂] at h₁
+  case ok res =>
+    rcases res with ⟨ty₁, c₁'⟩
+    simp at h₁
+    split at h₁ <;> try simp [err, ok, hasAttrInRecord] at h₁
+    case mk.h_1 _ _ =>
+      split at h₁ <;> try split at h₁
+      all_goals {
+        simp [ok] at h₁
+        simp [h₁]
+      }
+    case mk.h_2 _ _ =>
+      split at h₁
+      split at h₁ <;> try split at h₁
+      all_goals {
+        simp [ok] at h₁
+        try simp [h₁]
+      }
+
 end Cedar.Thm

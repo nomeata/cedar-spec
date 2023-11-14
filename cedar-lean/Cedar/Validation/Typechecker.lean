@@ -174,21 +174,20 @@ def typeOfBinaryApp (op₂ : BinaryOp) (ty₁ ty₂ : CedarType) (x₁ x₂ : Ex
   | .containsAny, .set ty₃, .set ty₄        => ifLubThenBool ty₃ ty₄
   | _, _, _                                 => err (.unexpectedType ty₁)
 
-def hasAttrInRecord (rty : RecordType) (x : Expr) (a : Attr) (c : Capabilities) : ResultType :=
+def hasAttrInRecord (rty : RecordType) (x : Expr) (a : Attr) (c : Capabilities) (knownToExist : Bool) : ResultType :=
   match rty.find? a with
-  | .some (.required _) => ok (.bool .tt)
-  | .some (.optional _) =>
-    if (x, a) ∈ c
+  | .some qty =>
+    if (x, a) ∈ c || (qty.isRequired && knownToExist)
     then ok (.bool .tt)
     else ok (.bool .anyBool) (Capabilities.singleton x a)
-  | .none               => ok (.bool .ff)
+  | .none     => ok (.bool .ff)
 
 def typeOfHasAttr (ty : CedarType) (x : Expr) (a : Attr) (c : Capabilities) (env : Environment) : ResultType :=
   match ty with
-  | .record rty => hasAttrInRecord rty x a c
+  | .record rty => hasAttrInRecord rty x a c true
   | .entity ety =>
     match env.ets.attrs? ety with
-    | .some rty => hasAttrInRecord rty x a c
+    | .some rty => hasAttrInRecord rty x a c false
     | .none     => err (.unknownEntity ety)
   | _           => err (.unexpectedType ty)
 
