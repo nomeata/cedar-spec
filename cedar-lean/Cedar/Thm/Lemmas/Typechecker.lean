@@ -113,7 +113,7 @@ theorem capability_implies_entity_attribute {x₁ : Expr} {a : Attr} {c₁ : Cap
   simp [EvaluatesTo, evaluate, h₂, hasAttr, attrsOf, Entities.attrsOrEmpty, h₃, Map.contains_iff_some_find?] at h₁
   exact h₁
 
------ Base typechecking soundness lemmas -----
+----- Lemmas showing that typechecking of individual expressions is sound -----
 
 theorem type_of_lit_is_sound {l : Prim} {c₁ c₂ : Capabilities} {env : Environment} {ty : CedarType} {request : Request} {entities : Entities}
   (h₃ : typeOf (Expr.lit l) c₁ env = Except.ok (ty, c₂)) :
@@ -159,6 +159,189 @@ theorem type_of_var_is_sound {var : Var} {c₁ c₂ : Capabilities} {env : Envir
     apply InstanceOfType.instance_of_entity; simp [h₂]
   case intro.h_4.intro.right =>
     simp [h₂]
+
+theorem type_of_not_is_sound {x₁ : Expr} {c₁ c₂ : Capabilities} {env : Environment} {ty : CedarType} {request : Request} {entities : Entities}
+  (h₁ : CapabilitiesInvariant c₁ request entities)
+  (h₂ : RequestAndEntitiesMatchEnvironment env request entities)
+  (h₃ : typeOf (Expr.unaryApp .not x₁) c₁ env = Except.ok (ty, c₂))
+  (ih : ∀ {c₁ c₂ : Capabilities} {env : Environment} {ty : CedarType} {request : Request} {entities : Entities},
+      CapabilitiesInvariant c₁ request entities →
+      RequestAndEntitiesMatchEnvironment env request entities →
+      typeOf x₁ c₁ env = Except.ok (ty, c₂) →
+      GuardedCapabilitiesInvariant x₁ c₂ request entities ∧
+      ∃ v, EvaluatesTo x₁ request entities v ∧ InstanceOfType v ty) :
+  GuardedCapabilitiesInvariant (Expr.unaryApp .not x₁) c₂ request entities ∧
+  ∃ v, EvaluatesTo (Expr.unaryApp .not x₁) request entities v ∧ InstanceOfType v ty
+:= by
+  rcases (type_of_not_inversion h₃) with ⟨h₅, bty, c₁', h₆, h₄⟩
+  subst h₅; subst h₆
+  apply And.intro
+  case left => exact empty_guarded_capabilities_invariant
+  case right =>
+    rcases (ih h₁ h₂ h₄) with ⟨h₅, v₁, h₆, h₇⟩ -- IH
+    simp [EvaluatesTo] at h₆
+    simp [EvaluatesTo, evaluate]
+    rcases h₆ with h₆ | h₆ | h₆ | h₆ <;> simp [h₆]
+    case intro.intro.intro.inr.inr.inr =>
+      cases bty
+      case anyBool =>
+        rcases (instance_of_anyBool_is_bool h₇) with ⟨b, h₈⟩
+        cases b <;>
+        subst h₈ <;>
+        simp [apply₁] <;>
+        apply bool_is_instance_of_anyBool
+      case tt =>
+        rcases (instance_of_tt_is_true h₇) with h₈
+        subst h₈
+        simp [apply₁, BoolType.not]
+        exact false_is_instance_of_ff
+      case ff =>
+        rcases (instance_of_ff_is_false h₇) with h₈
+        subst h₈
+        simp [apply₁, BoolType.not]
+        exact true_is_instance_of_tt
+    all_goals {
+      exact type_is_inhabited (CedarType.bool (BoolType.not bty))
+    }
+
+theorem type_of_neg_is_sound {x₁ : Expr} {c₁ c₂ : Capabilities} {env : Environment} {ty : CedarType} {request : Request} {entities : Entities}
+  (h₁ : CapabilitiesInvariant c₁ request entities)
+  (h₂ : RequestAndEntitiesMatchEnvironment env request entities)
+  (h₃ : typeOf (Expr.unaryApp .neg x₁) c₁ env = Except.ok (ty, c₂))
+  (ih : ∀ {c₁ c₂ : Capabilities} {env : Environment} {ty : CedarType} {request : Request} {entities : Entities},
+      CapabilitiesInvariant c₁ request entities →
+      RequestAndEntitiesMatchEnvironment env request entities →
+      typeOf x₁ c₁ env = Except.ok (ty, c₂) →
+      GuardedCapabilitiesInvariant x₁ c₂ request entities ∧
+      ∃ v, EvaluatesTo x₁ request entities v ∧ InstanceOfType v ty) :
+  GuardedCapabilitiesInvariant (Expr.unaryApp .neg x₁) c₂ request entities ∧
+  ∃ v, EvaluatesTo (Expr.unaryApp .neg x₁) request entities v ∧ InstanceOfType v ty
+:= by
+  rcases (type_of_neg_inversion h₃) with ⟨h₅, h₆, c₁', h₄⟩
+  subst h₅; subst h₆
+  apply And.intro
+  case left => exact empty_guarded_capabilities_invariant
+  case right =>
+    rcases (ih h₁ h₂ h₄) with ⟨_, v₁, h₆, h₇⟩ -- IH
+    simp [EvaluatesTo] at h₆
+    simp [EvaluatesTo, evaluate]
+    rcases h₆ with h₆ | h₆ | h₆ | h₆ <;> simp [h₆]
+    case intro.intro.intro.inr.inr.inr =>
+      rcases (instance_of_int_is_int h₇) with ⟨i, h₈⟩
+      subst h₈
+      simp [apply₁, intOrErr]
+      cases h₉ : i.neg?
+      case intro.none =>
+        simp only [or_false, or_true, true_and]
+        exact type_is_inhabited CedarType.int
+      case intro.some i' =>
+        simp only [Except.ok.injEq, false_or, exists_eq_left']
+        apply InstanceOfType.instance_of_int
+    all_goals {
+      exact type_is_inhabited CedarType.int
+    }
+
+theorem type_of_mulBy_is_sound {x₁ : Expr} {k : Int64} {c₁ c₂ : Capabilities} {env : Environment} {ty : CedarType} {request : Request} {entities : Entities}
+  (h₁ : CapabilitiesInvariant c₁ request entities)
+  (h₂ : RequestAndEntitiesMatchEnvironment env request entities)
+  (h₃ : typeOf (Expr.unaryApp (.mulBy k) x₁) c₁ env = Except.ok (ty, c₂))
+  (ih : ∀ {c₁ c₂ : Capabilities} {env : Environment} {ty : CedarType} {request : Request} {entities : Entities},
+      CapabilitiesInvariant c₁ request entities →
+      RequestAndEntitiesMatchEnvironment env request entities →
+      typeOf x₁ c₁ env = Except.ok (ty, c₂) →
+      GuardedCapabilitiesInvariant x₁ c₂ request entities ∧
+      ∃ v, EvaluatesTo x₁ request entities v ∧ InstanceOfType v ty) :
+  GuardedCapabilitiesInvariant (Expr.unaryApp (.mulBy k) x₁) c₂ request entities ∧
+  ∃ v, EvaluatesTo (Expr.unaryApp (.mulBy k) x₁) request entities v ∧ InstanceOfType v ty
+:= by
+  rcases (type_of_mulBy_inversion h₃) with ⟨h₅, h₆, c₁', h₄⟩
+  subst h₅; subst h₆
+  apply And.intro
+  case left => exact empty_guarded_capabilities_invariant
+  case right =>
+    rcases (ih h₁ h₂ h₄) with ⟨_, v₁, h₆, h₇⟩ -- IH
+    simp [EvaluatesTo] at h₆
+    simp [EvaluatesTo, evaluate]
+    rcases h₆ with h₆ | h₆ | h₆ | h₆ <;> simp [h₆]
+    case intro.intro.intro.inr.inr.inr =>
+      rcases (instance_of_int_is_int h₇) with ⟨i, h₈⟩
+      subst h₈
+      simp [apply₁, intOrErr]
+      cases h₉ : k.mul? i
+      case intro.none =>
+        simp only [or_false, or_true, true_and]
+        exact type_is_inhabited CedarType.int
+      case intro.some i' =>
+        simp only [Except.ok.injEq, false_or, exists_eq_left']
+        apply InstanceOfType.instance_of_int
+    all_goals {
+      exact type_is_inhabited CedarType.int
+    }
+
+theorem type_of_like_is_sound {x₁ : Expr} {p : Pattern} {c₁ c₂ : Capabilities} {env : Environment} {ty : CedarType} {request : Request} {entities : Entities}
+  (h₁ : CapabilitiesInvariant c₁ request entities)
+  (h₂ : RequestAndEntitiesMatchEnvironment env request entities)
+  (h₃ : typeOf (Expr.unaryApp (.like p) x₁) c₁ env = Except.ok (ty, c₂))
+  (ih : ∀ {c₁ c₂ : Capabilities} {env : Environment} {ty : CedarType} {request : Request} {entities : Entities},
+      CapabilitiesInvariant c₁ request entities →
+      RequestAndEntitiesMatchEnvironment env request entities →
+      typeOf x₁ c₁ env = Except.ok (ty, c₂) →
+      GuardedCapabilitiesInvariant x₁ c₂ request entities ∧
+      ∃ v, EvaluatesTo x₁ request entities v ∧ InstanceOfType v ty) :
+  GuardedCapabilitiesInvariant (Expr.unaryApp (.like p) x₁) c₂ request entities ∧
+  ∃ v, EvaluatesTo (Expr.unaryApp (.like p) x₁) request entities v ∧ InstanceOfType v ty
+:= by
+  rcases (type_of_like_inversion h₃) with ⟨h₅, h₆, c₁', h₄⟩
+  subst h₅; subst h₆
+  apply And.intro
+  case left => exact empty_guarded_capabilities_invariant
+  case right =>
+    rcases (ih h₁ h₂ h₄) with ⟨_, v₁, h₆, h₇⟩ -- IH
+    simp [EvaluatesTo] at h₆
+    simp [EvaluatesTo, evaluate]
+    rcases h₆ with h₆ | h₆ | h₆ | h₆ <;> simp [h₆]
+    case intro.intro.intro.inr.inr.inr =>
+      rcases (instance_of_string_is_string h₇) with ⟨s, h₈⟩
+      subst h₈
+      simp [apply₁]
+      exact bool_is_instance_of_anyBool (wildcardMatch s p)
+    all_goals {
+      exact type_is_inhabited (.bool .anyBool)
+    }
+
+theorem type_of_is_is_sound {x₁ : Expr} {ety : EntityType} {c₁ c₂ : Capabilities} {env : Environment} {ty : CedarType} {request : Request} {entities : Entities}
+  (h₁ : CapabilitiesInvariant c₁ request entities)
+  (h₂ : RequestAndEntitiesMatchEnvironment env request entities)
+  (h₃ : typeOf (Expr.unaryApp (.is ety) x₁) c₁ env = Except.ok (ty, c₂))
+  (ih : ∀ {c₁ c₂ : Capabilities} {env : Environment} {ty : CedarType} {request : Request} {entities : Entities},
+      CapabilitiesInvariant c₁ request entities →
+      RequestAndEntitiesMatchEnvironment env request entities →
+      typeOf x₁ c₁ env = Except.ok (ty, c₂) →
+      GuardedCapabilitiesInvariant x₁ c₂ request entities ∧
+      ∃ v, EvaluatesTo x₁ request entities v ∧ InstanceOfType v ty) :
+  GuardedCapabilitiesInvariant (Expr.unaryApp (.is ety) x₁) c₂ request entities ∧
+  ∃ v, EvaluatesTo (Expr.unaryApp (.is ety) x₁) request entities v ∧ InstanceOfType v ty
+:= by
+  rcases (type_of_is_inversion h₃) with ⟨h₅, ety', c₁', h₆, h₄⟩
+  subst h₅; subst h₆
+  apply And.intro
+  case left => exact empty_guarded_capabilities_invariant
+  case right =>
+    rcases (ih h₁ h₂ h₄) with ⟨_, v₁, h₆, h₇⟩ -- IH
+    simp [EvaluatesTo] at h₆
+    simp [EvaluatesTo, evaluate]
+    rcases h₆ with h₆ | h₆ | h₆ | h₆ <;> simp [h₆]
+    case intro.intro.intro.inr.inr.inr =>
+      rcases (instance_of_entity_type_is_entity h₇) with ⟨uid, h₈, h₉⟩
+      simp [apply₁, h₉, h₈]
+      cases h₁₀ : ety == ety' <;>
+      simp at h₁₀ <;>
+      simp [h₁₀]
+      case intro.intro.false => exact false_is_instance_of_ff
+      case intro.intro.true => exact true_is_instance_of_tt
+    all_goals {
+      apply type_is_inhabited
+    }
 
 theorem type_of_getAttr_is_sound_for_records {x₁ : Expr} {a : Attr} {c₁ c₁' : Capabilities} {env : Environment} {rty : RecordType} {request : Request} {entities : Entities} {v₁ : Value}
   (h₁ : CapabilitiesInvariant c₁ request entities)
@@ -257,6 +440,37 @@ theorem type_of_getAttr_is_sound_for_entities {x₁ : Expr} {a : Attr} {c₁ c�
         apply instance_of_attribute_type _ h₁₁ (by simp [Qualified.getType]) h₉
         apply well_typed_entity_attributes h₂ h₈ h₁₀
 
+theorem type_of_getAttr_is_sound {x₁ : Expr} {a : Attr} {c₁ c₂ : Capabilities} {env : Environment} {ty : CedarType} {request : Request} {entities : Entities}
+  (h₁ : CapabilitiesInvariant c₁ request entities)
+  (h₂ : RequestAndEntitiesMatchEnvironment env request entities)
+  (h₃ : typeOf (Expr.getAttr x₁ a) c₁ env = Except.ok (ty, c₂))
+  (ih : ∀ {c₁ c₂ : Capabilities} {env : Environment} {ty : CedarType} {request : Request} {entities : Entities},
+      CapabilitiesInvariant c₁ request entities →
+      RequestAndEntitiesMatchEnvironment env request entities →
+      typeOf x₁ c₁ env = Except.ok (ty, c₂) →
+      GuardedCapabilitiesInvariant x₁ c₂ request entities ∧
+      ∃ v, EvaluatesTo x₁ request entities v ∧ InstanceOfType v ty) :
+  GuardedCapabilitiesInvariant (Expr.getAttr x₁ a) c₂ request entities ∧
+  ∃ v, EvaluatesTo (Expr.getAttr x₁ a) request entities v ∧ InstanceOfType v ty
+:= by
+  rcases (type_of_getAttr_inversion h₃) with ⟨h₅, c₁', h₄⟩
+  subst h₅
+  apply And.intro
+  case left => exact empty_guarded_capabilities_invariant
+  case right =>
+    rcases h₄ with ⟨ety, h₄⟩ | ⟨rty, h₄⟩ <;>
+    rcases (ih h₁ h₂ h₄) with ⟨_, v₁, h₆, h₇⟩ <;>
+    simp [EvaluatesTo] at h₆ <;>
+    simp [EvaluatesTo, evaluate] <;>
+    rcases h₆ with h₆ | h₆ | h₆ | h₆ <;> simp [h₆]
+    case inl.intro.intro.intro.intro.inr.inr.inr =>
+      exact type_of_getAttr_is_sound_for_entities h₁ h₂ h₃ h₄ h₆ h₇
+    case inr.intro.intro.intro.intro.inr.inr.inr =>
+      exact type_of_getAttr_is_sound_for_records h₁ h₃ h₄ h₆ h₇
+    all_goals {
+      exact type_is_inhabited ty
+    }
+
 theorem type_of_hasAttr_is_sound_for_records {x₁ : Expr} {a : Attr} {c₁ c₁' : Capabilities} {env : Environment} {rty : RecordType} {request : Request} {entities : Entities} {v₁ : Value}
   (h₁ : CapabilitiesInvariant c₁ request entities)
   (h₂ : typeOf (Expr.hasAttr x₁ a) c₁ env = Except.ok (ty, c₂))
@@ -351,7 +565,41 @@ theorem type_of_hasAttr_is_sound_for_entities {x₁ : Expr} {a : Attr} {c₁ c�
       rcases (Map.not_contains_of_empty a) with _
       contradiction
 
-mutual
+theorem type_of_hasAttr_is_sound {x₁ : Expr} {a : Attr} {c₁ c₂ : Capabilities} {env : Environment} {ty : CedarType} {request : Request} {entities : Entities}
+  (h₁ : CapabilitiesInvariant c₁ request entities)
+  (h₂ : RequestAndEntitiesMatchEnvironment env request entities)
+  (h₃ : typeOf (Expr.hasAttr x₁ a) c₁ env = Except.ok (ty, c₂))
+  (ih : ∀ {c₁ c₂ : Capabilities} {env : Environment} {ty : CedarType} {request : Request} {entities : Entities},
+        CapabilitiesInvariant c₁ request entities →
+        RequestAndEntitiesMatchEnvironment env request entities →
+        typeOf x₁ c₁ env = Except.ok (ty, c₂) →
+        GuardedCapabilitiesInvariant x₁ c₂ request entities ∧
+        ∃ v, EvaluatesTo x₁ request entities v ∧ InstanceOfType v ty) :
+  GuardedCapabilitiesInvariant (Expr.hasAttr x₁ a) c₂ request entities ∧
+  ∃ v, EvaluatesTo (Expr.hasAttr x₁ a) request entities v ∧ InstanceOfType v ty
+:= by
+  rcases (type_of_hasAttr_inversion h₃) with ⟨h₅, c₁', h₄⟩
+  apply And.intro
+  case left =>
+    simp [GuardedCapabilitiesInvariant, CapabilitiesInvariant]
+    intro h₆ x aₓ h₇
+    cases h₅ <;> rename_i h₈ <;> subst h₈ <;> simp [Capabilities.singleton] at h₇
+    rcases h₇ with ⟨h₇, h₈⟩
+    subst h₇; subst h₈
+    simp [EvaluatesTo, h₆]
+  case right =>
+    rcases h₄ with ⟨ety, h₄⟩ | ⟨rty, h₄⟩ <;>
+    rcases (ih h₁ h₂ h₄) with ⟨_, v₁, h₆, h₇⟩ <;>
+    simp [EvaluatesTo] at h₆ <;>
+    simp [EvaluatesTo, evaluate] <;>
+    rcases h₆ with h₆ | h₆ | h₆ | h₆ <;> simp [h₆]
+    case inl.intro.intro.intro.intro.inr.inr.inr =>
+      exact type_of_hasAttr_is_sound_for_entities h₁ h₂ h₃ h₄ h₆ h₇
+    case inr.intro.intro.intro.intro.inr.inr.inr =>
+      exact type_of_hasAttr_is_sound_for_records h₁ h₃ h₄ h₆ h₇
+    all_goals {
+      exact type_is_inhabited ty
+    }
 
 /--
 If an expression is well-typed according to the typechecker, and the input
@@ -368,236 +616,27 @@ theorem type_of_is_sound {e : Expr} {c₁ c₂ : Capabilities} {env : Environmen
   ∃ (v : Value), EvaluatesTo e request entities v ∧ InstanceOfType v ty
 := by
   intro h₁ h₂ h₃
-  match e with -- We do the proof using mutually inductive theorems.
+  match e with
   | .lit l => exact type_of_lit_is_sound h₃
   | .var var => exact type_of_var_is_sound h₂ h₃
   | .ite x₁ x₂ x₃ => sorry
   | .and x₁ x₂ => sorry
   | .or x₁ x₂ => sorry
   | .unaryApp op₁ x₁ =>
+    rcases (@type_of_is_sound x₁) with ih
     match op₁ with
-    | .not     => exact type_of_not_is_sound h₁ h₂ h₃
-    | .neg     => exact type_of_neg_is_sound h₁ h₂ h₃
-    | .mulBy k => exact type_of_mulBy_is_sound h₁ h₂ h₃
-    | .like p  => exact type_of_like_is_sound h₁ h₂ h₃
-    | .is ety  => exact type_of_is_is_sound h₁ h₂ h₃
+    | .not     => exact type_of_not_is_sound h₁ h₂ h₃ ih
+    | .neg     => exact type_of_neg_is_sound h₁ h₂ h₃ ih
+    | .mulBy k => exact type_of_mulBy_is_sound h₁ h₂ h₃ ih
+    | .like p  => exact type_of_like_is_sound h₁ h₂ h₃ ih
+    | .is ety  => exact type_of_is_is_sound h₁ h₂ h₃ ih
   | .binaryApp op₂ x₁ x₂ => sorry
-  | .hasAttr x₁ a => exact type_of_hasAttr_is_sound h₁ h₂ h₃
-  | .getAttr x₁ a => exact type_of_getAttr_is_sound h₁ h₂ h₃
+  | .hasAttr x₁ a =>
+    rcases (@type_of_is_sound x₁) with ih
+    exact type_of_hasAttr_is_sound h₁ h₂ h₃ ih
+  | .getAttr x₁ a =>
+    rcases (@type_of_is_sound x₁) with ih
+    exact type_of_getAttr_is_sound h₁ h₂ h₃ ih
   | .set xs => sorry
   | .record axs => sorry
   | .call xfn xs => sorry
-
------ Unary op lemmas -----
-
-theorem type_of_not_is_sound {x₁ : Expr} {c₁ c₂ : Capabilities} {env : Environment} {ty : CedarType} {request : Request} {entities : Entities}
-  (h₁ : CapabilitiesInvariant c₁ request entities)
-  (h₂ : RequestAndEntitiesMatchEnvironment env request entities)
-  (h₃ : typeOf (Expr.unaryApp .not x₁) c₁ env = Except.ok (ty, c₂)) :
-  GuardedCapabilitiesInvariant (Expr.unaryApp .not x₁) c₂ request entities ∧
-  ∃ v, EvaluatesTo (Expr.unaryApp .not x₁) request entities v ∧ InstanceOfType v ty
-:= by
-  rcases (type_of_not_inversion h₃) with ⟨h₅, bty, c₁', h₆, h₄⟩
-  subst h₅; subst h₆
-  apply And.intro
-  case left => exact empty_guarded_capabilities_invariant
-  case right =>
-    rcases (type_of_is_sound h₁ h₂ h₄) with ⟨h₅, v₁, h₆, h₇⟩ -- IH
-    simp [EvaluatesTo] at h₆
-    simp [EvaluatesTo, evaluate]
-    rcases h₆ with h₆ | h₆ | h₆ | h₆ <;> simp [h₆]
-    case intro.intro.intro.inr.inr.inr =>
-      cases bty
-      case anyBool =>
-        rcases (instance_of_anyBool_is_bool h₇) with ⟨b, h₈⟩
-        cases b <;>
-        subst h₈ <;>
-        simp [apply₁] <;>
-        apply bool_is_instance_of_anyBool
-      case tt =>
-        rcases (instance_of_tt_is_true h₇) with h₈
-        subst h₈
-        simp [apply₁, BoolType.not]
-        exact false_is_instance_of_ff
-      case ff =>
-        rcases (instance_of_ff_is_false h₇) with h₈
-        subst h₈
-        simp [apply₁, BoolType.not]
-        exact true_is_instance_of_tt
-    all_goals {
-      exact type_is_inhabited (CedarType.bool (BoolType.not bty))
-    }
-
-theorem type_of_neg_is_sound {x₁ : Expr} {c₁ c₂ : Capabilities} {env : Environment} {ty : CedarType} {request : Request} {entities : Entities}
-  (h₁ : CapabilitiesInvariant c₁ request entities)
-  (h₂ : RequestAndEntitiesMatchEnvironment env request entities)
-  (h₃ : typeOf (Expr.unaryApp .neg x₁) c₁ env = Except.ok (ty, c₂)) :
-  GuardedCapabilitiesInvariant (Expr.unaryApp .neg x₁) c₂ request entities ∧
-  ∃ v, EvaluatesTo (Expr.unaryApp .neg x₁) request entities v ∧ InstanceOfType v ty
-:= by
-  rcases (type_of_neg_inversion h₃) with ⟨h₅, h₆, c₁', h₄⟩
-  subst h₅; subst h₆
-  apply And.intro
-  case left => exact empty_guarded_capabilities_invariant
-  case right =>
-    rcases (type_of_is_sound h₁ h₂ h₄) with ⟨h₅, v₁, h₆, h₇⟩ -- IH
-    simp [EvaluatesTo] at h₆
-    simp [EvaluatesTo, evaluate]
-    rcases h₆ with h₆ | h₆ | h₆ | h₆ <;> simp [h₆]
-    case intro.intro.intro.inr.inr.inr =>
-      rcases (instance_of_int_is_int h₇) with ⟨i, h₈⟩
-      subst h₈
-      simp [apply₁, intOrErr]
-      cases h₉ : i.neg?
-      case intro.none =>
-        simp only [or_false, or_true, true_and]
-        exact type_is_inhabited CedarType.int
-      case intro.some i' =>
-        simp only [Except.ok.injEq, false_or, exists_eq_left']
-        apply InstanceOfType.instance_of_int
-    all_goals {
-      exact type_is_inhabited CedarType.int
-    }
-
-theorem type_of_mulBy_is_sound {x₁ : Expr} {k : Int64} {c₁ c₂ : Capabilities} {env : Environment} {ty : CedarType} {request : Request} {entities : Entities}
-  (h₁ : CapabilitiesInvariant c₁ request entities)
-  (h₂ : RequestAndEntitiesMatchEnvironment env request entities)
-  (h₃ : typeOf (Expr.unaryApp (.mulBy k) x₁) c₁ env = Except.ok (ty, c₂)) :
-  GuardedCapabilitiesInvariant (Expr.unaryApp (.mulBy k) x₁) c₂ request entities ∧
-  ∃ v, EvaluatesTo (Expr.unaryApp (.mulBy k) x₁) request entities v ∧ InstanceOfType v ty
-:= by
-  rcases (type_of_mulBy_inversion h₃) with ⟨h₅, h₆, c₁', h₄⟩
-  subst h₅; subst h₆
-  apply And.intro
-  case left => exact empty_guarded_capabilities_invariant
-  case right =>
-    rcases (type_of_is_sound h₁ h₂ h₄) with ⟨h₅, v₁, h₆, h₇⟩ -- IH
-    simp [EvaluatesTo] at h₆
-    simp [EvaluatesTo, evaluate]
-    rcases h₆ with h₆ | h₆ | h₆ | h₆ <;> simp [h₆]
-    case intro.intro.intro.inr.inr.inr =>
-      rcases (instance_of_int_is_int h₇) with ⟨i, h₈⟩
-      subst h₈
-      simp [apply₁, intOrErr]
-      cases h₉ : k.mul? i
-      case intro.none =>
-        simp only [or_false, or_true, true_and]
-        exact type_is_inhabited CedarType.int
-      case intro.some i' =>
-        simp only [Except.ok.injEq, false_or, exists_eq_left']
-        apply InstanceOfType.instance_of_int
-    all_goals {
-      exact type_is_inhabited CedarType.int
-    }
-
-theorem type_of_like_is_sound {x₁ : Expr} {p : Pattern} {c₁ c₂ : Capabilities} {env : Environment} {ty : CedarType} {request : Request} {entities : Entities}
-  (h₁ : CapabilitiesInvariant c₁ request entities)
-  (h₂ : RequestAndEntitiesMatchEnvironment env request entities)
-  (h₃ : typeOf (Expr.unaryApp (.like p) x₁) c₁ env = Except.ok (ty, c₂)) :
-  GuardedCapabilitiesInvariant (Expr.unaryApp (.like p) x₁) c₂ request entities ∧
-  ∃ v, EvaluatesTo (Expr.unaryApp (.like p) x₁) request entities v ∧ InstanceOfType v ty
-:= by
-  rcases (type_of_like_inversion h₃) with ⟨h₅, h₆, c₁', h₄⟩
-  subst h₅; subst h₆
-  apply And.intro
-  case left => exact empty_guarded_capabilities_invariant
-  case right =>
-    rcases (type_of_is_sound h₁ h₂ h₄) with ⟨h₅, v₁, h₆, h₇⟩ -- IH
-    simp [EvaluatesTo] at h₆
-    simp [EvaluatesTo, evaluate]
-    rcases h₆ with h₆ | h₆ | h₆ | h₆ <;> simp [h₆]
-    case intro.intro.intro.inr.inr.inr =>
-      rcases (instance_of_string_is_string h₇) with ⟨s, h₈⟩
-      subst h₈
-      simp [apply₁]
-      exact bool_is_instance_of_anyBool (wildcardMatch s p)
-    all_goals {
-      exact type_is_inhabited (.bool .anyBool)
-    }
-
-theorem type_of_is_is_sound {x₁ : Expr} {ety : EntityType} {c₁ c₂ : Capabilities} {env : Environment} {ty : CedarType} {request : Request} {entities : Entities}
-  (h₁ : CapabilitiesInvariant c₁ request entities)
-  (h₂ : RequestAndEntitiesMatchEnvironment env request entities)
-  (h₃ : typeOf (Expr.unaryApp (.is ety) x₁) c₁ env = Except.ok (ty, c₂)) :
-  GuardedCapabilitiesInvariant (Expr.unaryApp (.is ety) x₁) c₂ request entities ∧
-  ∃ v, EvaluatesTo (Expr.unaryApp (.is ety) x₁) request entities v ∧ InstanceOfType v ty
-:= by
-  rcases (type_of_is_inversion h₃) with ⟨h₅, ety', c₁', h₆, h₄⟩
-  subst h₅; subst h₆
-  apply And.intro
-  case left => exact empty_guarded_capabilities_invariant
-  case right =>
-    rcases (type_of_is_sound h₁ h₂ h₄) with ⟨h₅, v₁, h₆, h₇⟩ -- IH
-    simp [EvaluatesTo] at h₆
-    simp [EvaluatesTo, evaluate]
-    rcases h₆ with h₆ | h₆ | h₆ | h₆ <;> simp [h₆]
-    case intro.intro.intro.inr.inr.inr =>
-      rcases (instance_of_entity_type_is_entity h₇) with ⟨uid, h₈, h₉⟩
-      simp [apply₁, h₉, h₈]
-      cases h₁₀ : ety == ety' <;>
-      simp at h₁₀ <;>
-      simp [h₁₀]
-      case intro.intro.false => exact false_is_instance_of_ff
-      case intro.intro.true => exact true_is_instance_of_tt
-    all_goals {
-      apply type_is_inhabited
-    }
-
------ getAttr and hasAttr lemmas -----
-
-theorem type_of_getAttr_is_sound {x₁ : Expr} {a : Attr} {c₁ c₂ : Capabilities} {env : Environment} {ty : CedarType} {request : Request} {entities : Entities}
-  (h₁ : CapabilitiesInvariant c₁ request entities)
-  (h₂ : RequestAndEntitiesMatchEnvironment env request entities)
-  (h₃ : typeOf (Expr.getAttr x₁ a) c₁ env = Except.ok (ty, c₂)) :
-  GuardedCapabilitiesInvariant (Expr.getAttr x₁ a) c₂ request entities ∧
-  ∃ v, EvaluatesTo (Expr.getAttr x₁ a) request entities v ∧ InstanceOfType v ty
-:= by
-  rcases (type_of_getAttr_inversion h₃) with ⟨h₅, c₁', h₄⟩
-  subst h₅
-  apply And.intro
-  case left => exact empty_guarded_capabilities_invariant
-  case right =>
-    rcases h₄ with ⟨ety, h₄⟩ | ⟨rty, h₄⟩ <;>
-    rcases (type_of_is_sound h₁ h₂ h₄) with ⟨_, v₁, h₆, h₇⟩ <;> -- IH
-    simp [EvaluatesTo] at h₆ <;>
-    simp [EvaluatesTo, evaluate] <;>
-    rcases h₆ with h₆ | h₆ | h₆ | h₆ <;> simp [h₆]
-    case inl.intro.intro.intro.intro.inr.inr.inr =>
-      exact type_of_getAttr_is_sound_for_entities h₁ h₂ h₃ h₄ h₆ h₇
-    case inr.intro.intro.intro.intro.inr.inr.inr =>
-      exact type_of_getAttr_is_sound_for_records h₁ h₃ h₄ h₆ h₇
-    all_goals {
-      exact type_is_inhabited ty
-    }
-
-theorem type_of_hasAttr_is_sound {x₁ : Expr} {a : Attr} {c₁ c₂ : Capabilities} {env : Environment} {ty : CedarType} {request : Request} {entities : Entities}
-  (h₁ : CapabilitiesInvariant c₁ request entities)
-  (h₂ : RequestAndEntitiesMatchEnvironment env request entities)
-  (h₃ : typeOf (Expr.hasAttr x₁ a) c₁ env = Except.ok (ty, c₂)) :
-  GuardedCapabilitiesInvariant (Expr.hasAttr x₁ a) c₂ request entities ∧
-  ∃ v, EvaluatesTo (Expr.hasAttr x₁ a) request entities v ∧ InstanceOfType v ty
-:= by
-  rcases (type_of_hasAttr_inversion h₃) with ⟨h₅, c₁', h₄⟩
-  apply And.intro
-  case left =>
-    simp [GuardedCapabilitiesInvariant, CapabilitiesInvariant]
-    intro h₆ x aₓ h₇
-    cases h₅ <;> rename_i h₈ <;> subst h₈ <;> simp [Capabilities.singleton] at h₇
-    rcases h₇ with ⟨h₇, h₈⟩
-    subst h₇; subst h₈
-    simp [EvaluatesTo, h₆]
-  case right =>
-    rcases h₄ with ⟨ety, h₄⟩ | ⟨rty, h₄⟩ <;>
-    rcases (type_of_is_sound h₁ h₂ h₄) with ⟨_, v₁, h₆, h₇⟩ <;> -- IH
-    simp [EvaluatesTo] at h₆ <;>
-    simp [EvaluatesTo, evaluate] <;>
-    rcases h₆ with h₆ | h₆ | h₆ | h₆ <;> simp [h₆]
-    case inl.intro.intro.intro.intro.inr.inr.inr =>
-      exact type_of_hasAttr_is_sound_for_entities h₁ h₂ h₃ h₄ h₆ h₇
-    case inr.intro.intro.intro.intro.inr.inr.inr =>
-      exact type_of_hasAttr_is_sound_for_records h₁ h₃ h₄ h₆ h₇
-    all_goals {
-      exact type_is_inhabited ty
-    }
-
-end
