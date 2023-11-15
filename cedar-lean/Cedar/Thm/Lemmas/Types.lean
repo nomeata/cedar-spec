@@ -126,6 +126,14 @@ theorem bool_is_instance_of_anyBool (b : Bool) :
   apply InstanceOfType.instance_of_bool
   simp [InstanceOfBoolType]
 
+theorem instance_of_bool_is_bool {v₁ : Value} {bty : BoolType} :
+  InstanceOfType v₁ (CedarType.bool bty) →
+  ∃ b, v₁ = .prim (.bool b)
+:= by
+  intro h₁
+  rcases h₁ with ⟨b, _, _⟩
+  exists b
+
 theorem instance_of_ff_is_false {v₁ : Value} :
   InstanceOfType v₁ (CedarType.bool BoolType.ff) →
   v₁ = .prim (.bool false)
@@ -151,10 +159,20 @@ theorem instance_of_tt_is_true {v₁ : Value} :
 theorem instance_of_anyBool_is_bool {v₁ : Value} :
   InstanceOfType v₁ (CedarType.bool BoolType.anyBool) →
   ∃ b, v₁ = .prim (.bool b)
+:= by exact instance_of_bool_is_bool
+
+theorem instance_of_lubBool {b : Bool} {bty₁ bty₂ : BoolType} :
+  (InstanceOfType (Value.prim (Prim.bool b)) (CedarType.bool bty₁) ∨
+   InstanceOfType (Value.prim (Prim.bool b)) (CedarType.bool bty₂)) →
+  InstanceOfType (Value.prim (Prim.bool b)) (CedarType.bool (lubBool bty₁ bty₂))
 := by
-  intro h₁
-  cases h₁ with
-  | instance_of_bool b _ h₁ => exists b
+  intro h₁ ; cases h₁ <;> simp [lubBool] <;> split <;>
+  try exact bool_is_instance_of_anyBool b
+  all_goals {
+    rename_i h₂ h₃
+    subst h₃
+    exact h₂
+  }
 
 theorem instance_of_int_is_int {v₁ : Value} :
   InstanceOfType v₁ CedarType.int →

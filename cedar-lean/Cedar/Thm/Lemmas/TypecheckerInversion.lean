@@ -178,4 +178,49 @@ theorem type_of_hasAttr_inversion {x₁ : Expr} {a : Attr} {c₁ c₂ : Capabili
         try simp [h₁]
       }
 
+
+theorem type_of_and_inversion {x₁ x₂ : Expr} {c c' : Capabilities} {env : Environment} {ty : CedarType}
+  (h₁ : typeOf (Expr.and x₁ x₂) c env = Except.ok (ty, c')) :
+  ∃ bty₁ c₁,
+    typeOf x₁ c env = .ok (.bool bty₁, c₁) ∧
+    if bty₁ = BoolType.ff
+    then ty = .bool BoolType.ff ∧ c' = ∅
+    else ∃ bty₂ c₂,
+      typeOf x₂ (c ∪ c₁) env = .ok (.bool bty₂, c₂) ∧
+      if bty₂ = BoolType.ff
+      then ty = .bool BoolType.ff ∧ c' = ∅
+      else ty = .bool (lubBool bty₁ bty₂) ∧ c' = c₁ ∪ c₂
+:= by
+  simp [typeOf] at h₁
+  cases h₂ : typeOf x₁ c env <;> simp [h₂] at *
+  rename_i res₁
+  simp [typeOfAnd] at h₁
+  split at h₁ <;> simp [ok, err] at h₁
+  case ok.h_1 h₃ =>
+    exists BoolType.ff, res₁.snd ; simp [h₁]
+    simp at h₃
+    rcases h₁ with ⟨h₁, _⟩ ; subst h₁
+    rcases h₃ with ⟨h₃, _⟩
+    simp [←h₃]
+  case ok.h_2 bty₁ c₁ h₃ h₄ =>
+    exists bty₁, c₁
+    simp at h₄ ; rcases h₄ with ⟨hty₁, hc₁⟩ ; simp [←hty₁, ←hc₁]
+    split ; contradiction
+    cases h₄ : typeOf x₂ (c ∪ res₁.snd) env <;> simp [h₄] at *
+    rename_i res₂
+    split at h₁ <;> simp at h₁ <;>
+    rcases h₁ with ⟨hty, hc⟩ <;> subst hty hc
+    case h_1.intro hty₂ =>
+      exists BoolType.ff, res₂.snd ; simp [←hty₂]
+    case h_2.intro hty₂ =>
+      exists BoolType.tt, res₂.snd ; simp [←hty₂, hc₁]
+      cases bty₁ <;> simp at h₃ <;> simp [lubBool]
+    case h_3.intro bty₂ h₄ h₅ hty₂ =>
+      exists BoolType.anyBool, res₂.snd
+      cases bty₂ <;> simp at *
+      simp [←hty₂, hc₁, lubBool]
+      split
+      case inl h₆ => simp [h₆]
+      case inr => rfl
+
 end Cedar.Thm

@@ -113,6 +113,16 @@ theorem capability_implies_entity_attribute {x₁ : Expr} {a : Attr} {c₁ : Cap
   simp [EvaluatesTo, evaluate, h₂, hasAttr, attrsOf, Entities.attrsOrEmpty, h₃, Map.contains_iff_some_find?] at h₁
   exact h₁
 
+theorem capability_union_invariant {c₁ c₂ : Capabilities} {request : Request} {entities : Entities}
+  (h₁ : CapabilitiesInvariant c₁ request entities)
+  (h₂ : CapabilitiesInvariant c₂ request entities) :
+  CapabilitiesInvariant (c₁ ∪ c₂) request entities
+:= by
+  simp [CapabilitiesInvariant] at *
+  intro x a h₃
+  specialize h₁ x a ; specialize h₂ x a
+  cases h₃ <;> rename_i h₃ <;> simp [h₃] at * <;> assumption
+
 ----- Lemmas showing that typechecking of individual expressions is sound -----
 
 theorem type_of_lit_is_sound {l : Prim} {c₁ c₂ : Capabilities} {env : Environment} {ty : CedarType} {request : Request} {entities : Entities}
@@ -178,7 +188,7 @@ theorem type_of_not_is_sound {x₁ : Expr} {c₁ c₂ : Capabilities} {env : Env
   apply And.intro
   case left => exact empty_guarded_capabilities_invariant
   case right =>
-    rcases (ih h₁ h₂ h₄) with ⟨h₅, v₁, h₆, h₇⟩ -- IH
+    rcases (ih h₁ h₂ h₄) with ⟨_, v₁, h₆, h₇⟩ -- IH
     simp [EvaluatesTo] at h₆
     simp [EvaluatesTo, evaluate]
     rcases h₆ with h₆ | h₆ | h₆ | h₆ <;> simp [h₆]
@@ -601,6 +611,104 @@ theorem type_of_hasAttr_is_sound {x₁ : Expr} {a : Attr} {c₁ c₂ : Capabilit
       exact type_is_inhabited ty
     }
 
+theorem type_of_and_is_sound {x₁ x₂ : Expr} {c₁ c₂ : Capabilities} {env : Environment} {ty : CedarType} {request : Request} {entities : Entities}
+  (h₁ : CapabilitiesInvariant c₁ request entities)
+  (h₂ : RequestAndEntitiesMatchEnvironment env request entities)
+  (h₃ : typeOf (Expr.and x₁ x₂) c₁ env = Except.ok (ty, c₂))
+  (ih₁ : ∀ {c₁ c₂ : Capabilities} {env : Environment} {ty : CedarType} {request : Request} {entities : Entities},
+    CapabilitiesInvariant c₁ request entities →
+    RequestAndEntitiesMatchEnvironment env request entities →
+    typeOf x₁ c₁ env = Except.ok (ty, c₂) →
+    GuardedCapabilitiesInvariant x₁ c₂ request entities ∧
+    ∃ v, EvaluatesTo x₁ request entities v ∧ InstanceOfType v ty)
+  (ih₂ : ∀ {c₁ c₂ : Capabilities} {env : Environment} {ty : CedarType} {request : Request} {entities : Entities},
+    CapabilitiesInvariant c₁ request entities →
+    RequestAndEntitiesMatchEnvironment env request entities →
+    typeOf x₂ c₁ env = Except.ok (ty, c₂) →
+    GuardedCapabilitiesInvariant x₂ c₂ request entities ∧
+    ∃ v, EvaluatesTo x₂ request entities v ∧ InstanceOfType v ty) :
+  GuardedCapabilitiesInvariant (Expr.and x₁ x₂) c₂ request entities ∧
+  ∃ v, EvaluatesTo (Expr.and x₁ x₂) request entities v ∧ InstanceOfType v ty
+:= by
+  rcases (type_of_and_inversion h₃) with ⟨bty₁, rc₁, h₄, h₅⟩
+  specialize ih₁ h₁ h₂ h₄
+  rcases ih₁ with ⟨ih₁₁, v₁, ih₁₂, ih₁₃⟩
+  rcases (instance_of_bool_is_bool ih₁₃) with ⟨b₁, hb₁⟩ ; subst hb₁
+  split at h₅
+  case inl h₆ =>
+    subst h₆
+    rcases h₅ with ⟨hty, hc⟩ ; subst hty hc
+    apply And.intro
+    case left => exact empty_guarded_capabilities_invariant
+    case right =>
+      rcases (instance_of_ff_is_false ih₁₃) with h₇
+      simp at h₇ ; subst h₇
+      simp [EvaluatesTo] at ih₁₂
+      rcases ih₁₂ with ih₁₂ | ih₁₂ | ih₁₂ | ih₁₂ <;>
+      simp [EvaluatesTo, evaluate, Result.as, ih₁₂, Coe.coe, Value.asBool] <;>
+      try exact type_is_inhabited (CedarType.bool BoolType.ff)
+      exact false_is_instance_of_ff
+  case inr h₆ =>
+    rcases h₅ with ⟨bty₂, rc₂, h₅, h₇⟩
+    split at h₇ <;> rcases h₇ with ⟨hty, hc⟩ <;> subst hty hc
+    case inl.intro h₈ =>
+      subst h₈
+      apply And.intro
+      case left => exact empty_guarded_capabilities_invariant
+      case right =>
+        exists false ; simp [false_is_instance_of_ff]
+        cases b₁
+        case false =>
+          rcases ih₁₂ with ih₁₂ | ih₁₂ | ih₁₂ | ih₁₂ <;>
+          simp [EvaluatesTo, evaluate, Result.as, ih₁₂, Coe.coe, Value.asBool]
+        case true =>
+          rcases ih₁₂ with ih₁₂ | ih₁₂ | ih₁₂ | ih₁₂ <;>
+          simp [EvaluatesTo, evaluate, Result.as, ih₁₂, Coe.coe, Value.asBool]
+          simp [GuardedCapabilitiesInvariant] at ih₁₁
+          specialize ih₁₁ ih₁₂
+          rcases (capability_union_invariant h₁ ih₁₁) with h₇
+          specialize ih₂ h₇ h₂ h₅
+          rcases ih₂ with ⟨_, v₂, ih₂₂, ih₂₃⟩
+          simp [EvaluatesTo] at ih₂₂
+          rcases ih₂₂ with ih₂₂ | ih₂₂ | ih₂₂ | ih₂₂ <;>
+          simp [EvaluatesTo, evaluate, Result.as, ih₂₂, Coe.coe, Value.asBool]
+          rcases (instance_of_ff_is_false ih₂₃) with h₈
+          subst h₈ ; simp only
+    case inr.intro h₈ =>
+      cases b₁
+      case false =>
+        rcases ih₁₂ with ih₁₂ | ih₁₂ | ih₁₂ | ih₁₂ <;>
+        simp [EvaluatesTo, evaluate, Result.as, ih₁₂, Coe.coe, Value.asBool, GuardedCapabilitiesInvariant] <;>
+        try exact type_is_inhabited (CedarType.bool (lubBool bty₁ bty₂))
+        apply instance_of_lubBool ; simp [ih₁₃]
+      case true =>
+        rcases ih₁₂ with ih₁₂ | ih₁₂ | ih₁₂ | ih₁₂ <;>
+        simp [EvaluatesTo, evaluate, Result.as, ih₁₂, Coe.coe, Value.asBool, GuardedCapabilitiesInvariant] <;>
+        try exact type_is_inhabited (CedarType.bool (lubBool bty₁ bty₂))
+        simp [GuardedCapabilitiesInvariant] at ih₁₁
+        specialize ih₁₁ ih₁₂
+        rcases (capability_union_invariant h₁ ih₁₁) with h₇
+        specialize ih₂ h₇ h₂ h₅
+        rcases ih₂ with ⟨ih₂₁, v₂, ih₂₂, ih₂₃⟩
+        simp [EvaluatesTo] at ih₂₂
+        rcases ih₂₂ with ih₂₂ | ih₂₂ | ih₂₂ | ih₂₂ <;>
+        simp [EvaluatesTo, evaluate, Result.as, ih₂₂, Coe.coe, Value.asBool] <;>
+        try exact type_is_inhabited (CedarType.bool (lubBool bty₁ bty₂))
+        rcases (instance_of_bool_is_bool ih₂₃) with ⟨b₂, hb₂⟩ ; subst hb₂
+        cases b₂ <;> simp
+        case false =>
+          exists false ; simp only [true_and]
+          apply instance_of_lubBool ; simp [ih₂₃]
+        case true =>
+          apply And.intro
+          case left =>
+            simp [GuardedCapabilitiesInvariant] at ih₂₁
+            specialize ih₂₁ ih₂₂
+            exact capability_union_invariant ih₁₁ ih₂₁
+          case right =>
+            exists true ; simp only [true_and]
+            apply instance_of_lubBool ; simp [ih₁₃]
+
 /--
 If an expression is well-typed according to the typechecker, and the input
 environment and capabilities satisfy some invariants, then either (1) evaluation
@@ -620,7 +728,10 @@ theorem type_of_is_sound {e : Expr} {c₁ c₂ : Capabilities} {env : Environmen
   | .lit l => exact type_of_lit_is_sound h₃
   | .var var => exact type_of_var_is_sound h₂ h₃
   | .ite x₁ x₂ x₃ => sorry
-  | .and x₁ x₂ => sorry
+  | .and x₁ x₂ =>
+    rcases (@type_of_is_sound x₁) with ih₁
+    rcases (@type_of_is_sound x₂) with ih₂
+    exact type_of_and_is_sound h₁ h₂ h₃ ih₁ ih₂
   | .or x₁ x₂ => sorry
   | .unaryApp op₁ x₁ =>
     rcases (@type_of_is_sound x₁) with ih
