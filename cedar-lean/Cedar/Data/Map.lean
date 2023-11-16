@@ -28,9 +28,8 @@ Use Map.make to construct well-formed maps from lists of key-value pairs.
 namespace Cedar.Data
 
 inductive Map (α : Type u) (β : Type v) where
-| mk : List (α × β) → Map α β
-deriving Repr
-deriving instance DecidableEq, Repr, Inhabited for Map
+| mk : List (α × β) -> Map α β
+deriving Repr, DecidableEq, Repr, Inhabited
 
 namespace Map
 

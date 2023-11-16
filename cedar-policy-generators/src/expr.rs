@@ -147,6 +147,12 @@ impl<'a> ExprGenerator<'a> {
                         }
                     },
                     1 => {
+                            Ok(ast::Expr::is_entity_type(
+                                self.generate_expr(max_depth - 1, u)?,
+                                u.choose(&self.schema.entity_types)?.clone(),
+                            ))
+                    },
+                    1 => {
                         let mut l = Vec::new();
                         u.arbitrary_loop(Some(0), Some(self.settings.max_width as u32), |u| {
                             l.push(self.generate_expr(max_depth - 1, u)?);
@@ -250,7 +256,11 @@ impl<'a> ExprGenerator<'a> {
         if self.should_generate_unknown(max_depth, u)? {
             let v = self.generate_value_for_type(target_type, max_depth, u)?;
             let name = self.unknown_pool.alloc(target_type.clone(), v);
-            Ok(ast::Expr::unknown(name))
+            let unknown_type: Option<ast::Type> = target_type.clone().try_into().ok();
+            match unknown_type {
+                Some(ty) => Ok(ast::Expr::unknown(ast::Unknown::new_with_type(name, ty))),
+                None => Ok(ast::Expr::unknown(ast::Unknown::new_untyped(name))),
+            }
         } else {
             match target_type {
                 Type::Bool => {
@@ -471,6 +481,17 @@ impl<'a> ExprGenerator<'a> {
                             } else {
                                 Err(Error::LikeDisabled)
                             }
+                        },
+                        // is
+                        2 => {
+                                Ok(ast::Expr::is_entity_type(
+                                    self.generate_expr_for_type(
+                                        &Type::entity(),
+                                        max_depth - 1,
+                                        u,
+                                    )?,
+                                    u.choose(&self.schema.entity_types)?.clone(),
+                                ))
                         },
                         // extension function that returns bool
                         2 => self.generate_ext_func_call_for_type(
