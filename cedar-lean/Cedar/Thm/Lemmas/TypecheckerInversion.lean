@@ -223,4 +223,65 @@ theorem type_of_and_inversion {x₁ x₂ : Expr} {c c' : Capabilities} {env : En
       case inl h₆ => simp [h₆]
       case inr => rfl
 
+
+theorem type_of_or_inversion {x₁ x₂ : Expr} {c c' : Capabilities} {env : Environment} {ty : CedarType}
+  (h₁ : typeOf (Expr.or x₁ x₂) c env = Except.ok (ty, c')) :
+  ∃ bty₁ c₁,
+    typeOf x₁ c env = .ok (.bool bty₁, c₁) ∧
+    if bty₁ = BoolType.tt
+    then ty = .bool BoolType.tt ∧ c' = ∅
+    else ∃ bty₂ c₂,
+      typeOf x₂ c env = .ok (.bool bty₂, c₂) ∧
+      if bty₁ = BoolType.ff
+      then ty = .bool bty₂ ∧ c' = c₂
+      else if bty₂ = BoolType.tt
+      then ty = .bool BoolType.tt ∧ c' = ∅
+      else if bty₂ = BoolType.ff
+      then ty = .bool BoolType.anyBool ∧ c' = c₁
+      else ty = .bool BoolType.anyBool ∧ c' = c₁ ∩ c₂
+:= by
+  simp [typeOf] at h₁
+  cases h₂ : typeOf x₁ c env <;> simp [h₂] at *
+  rename_i res₁
+  simp [typeOfOr] at h₁
+  split at h₁ <;> simp [ok, err] at h₁ <;>
+  rename_i hr₁ <;> simp at hr₁ <;>
+  rcases hr₁ with ⟨ht₁, hc₁⟩
+  case ok.h_1 c₁  =>
+    exists BoolType.tt, c₁
+    rcases h₁ with ⟨ht, hc⟩
+    simp [←ht₁, ←hc₁, hc, ←ht]
+  case ok.h_2 c₁ =>
+    cases h₃ : typeOf x₂ c env <;> simp [h₃] at *
+    rename_i res₂
+    split at h₁ <;> simp [ok, err] at h₁
+    rename_i bty₂ hr₂
+    rcases h₁ with ⟨ht, hc⟩ ; subst ht hc
+    exists BoolType.ff, c₁
+    simp [←ht₁, ←hc₁]
+    exists bty₂
+    simp [←hr₂]
+  case ok.h_3 bty₁ c₁ hneq₁ hneq₂ =>
+    cases bty₁ <;> simp at hneq₁ hneq₂
+    exists BoolType.anyBool, c₁
+    simp [←ht₁, ←hc₁]
+    cases h₃ : typeOf x₂ c env <;> simp [h₃] at *
+    rename_i res₂
+    split at h₁ <;> simp [ok, err] at h₁ <;>
+    rename_i hr₂ <;>
+    rcases h₁ with ⟨ht, hc⟩ <;> subst ht hc <;> simp
+    case h_1.intro =>
+      exists BoolType.tt, res₂.snd
+      simp [←hr₂]
+    case h_2.intro =>
+      exists BoolType.ff, res₂.snd
+      simp [←hr₂, ht₁, hc₁]
+    case h_3.intro bty₂ hneq₁ hneq₂ =>
+      exists bty₂, res₂.snd
+      simp [←hr₂, ←ht₁, ←hc₁]
+      cases bty₂ <;> simp at *
+
+
+
+
 end Cedar.Thm

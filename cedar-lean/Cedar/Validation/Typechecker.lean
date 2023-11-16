@@ -64,7 +64,7 @@ def typeOfIf (r₁ : CedarType × Capabilities) (r₂ r₃ : ResultType) : Resul
   match r₁ with
   | (.bool .tt, c₁) => do
     let (ty₂, c₂) ← r₂
-    ok ty₂ (c₁.union c₂)
+    ok ty₂ (c₁ ∪ c₂)
   | (.bool .ff, _) => r₃
   | (.bool .anyBool, c₁) => do
     let (ty₂, c₂) ← r₂
@@ -89,12 +89,16 @@ def typeOfAnd (r₁ : CedarType × Capabilities) (r₂ : ResultType) : ResultTyp
 def typeOfOr (r₁ : CedarType × Capabilities) (r₂ : ResultType) : ResultType :=
   match r₁ with
   | (.bool .tt, _)  => ok (.bool .tt)
-  | (.bool .ff, _)  => r₂
-  | (.bool ty₁, c₁) => do
+  | (.bool .ff, _)  => do
+    let (ty₂, c₂) ← r₂
+    match ty₂ with
+    | .bool _       => ok ty₂ c₂
+    | _             => err (.unexpectedType ty₂)
+  | (.bool _, c₁)   => do
     let (ty₂, c₂) ← r₂
     match ty₂ with
     | .bool .tt     => ok (.bool .tt)
-    | .bool .ff     => ok (.bool ty₁) c₁
+    | .bool .ff     => ok (.bool .anyBool) c₁
     | .bool _       => ok (.bool .anyBool) (c₁ ∩ c₂)
     | _             => err (.unexpectedType ty₂)
   | (ty₁, _)        => err (.unexpectedType ty₁)
