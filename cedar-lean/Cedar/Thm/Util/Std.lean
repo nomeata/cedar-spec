@@ -31,3 +31,16 @@ functions.
 @[simp] theorem Except.bind_err (e : ε) (f : α → Except ε β) :
   (bind (Except.error e) f : Except ε β) = (Except.error e)
 := by rfl
+
+-- The `Option.bind_*` theorems let `simp` reduce terms that use the `do` notation.
+@[simp] theorem Option.bind_some_T (a : α) (f : α → OptionT Id β) :
+  (bind (Option.some a) f : OptionT Id β) = f a
+:= by rfl
+
+@[simp] theorem Option.bind_some_fun (a : α) (f : α → Option β) :
+  (bind (Option.some a) f : Option β) = f a
+:= by rfl
+
+@[simp] theorem Option.bind_none_fun (f : α → Option β) :
+  (bind Option.none f : Option β) = Option.none
+:= by rfl

@@ -15,8 +15,6 @@
 -/
 
 import Cedar.Thm.Validation.Typechecker.Basic
-import Cedar.Thm.Validation.Typechecker.Types
-
 
 /-!
 This file proves that typechecking of `.and` expressions is sound.
@@ -76,18 +74,8 @@ theorem type_of_and_is_sound {x₁ x₂ : Expr} {c₁ c₂ : Capabilities} {env 
   (h₁ : CapabilitiesInvariant c₁ request entities)
   (h₂ : RequestAndEntitiesMatchEnvironment env request entities)
   (h₃ : typeOf (Expr.and x₁ x₂) c₁ env = Except.ok (ty, c₂))
-  (ih₁ : ∀ {c₁ c₂ : Capabilities} {env : Environment} {ty : CedarType} {request : Request} {entities : Entities},
-    CapabilitiesInvariant c₁ request entities →
-    RequestAndEntitiesMatchEnvironment env request entities →
-    typeOf x₁ c₁ env = Except.ok (ty, c₂) →
-    GuardedCapabilitiesInvariant x₁ c₂ request entities ∧
-    ∃ v, EvaluatesTo x₁ request entities v ∧ InstanceOfType v ty)
-  (ih₂ : ∀ {c₁ c₂ : Capabilities} {env : Environment} {ty : CedarType} {request : Request} {entities : Entities},
-    CapabilitiesInvariant c₁ request entities →
-    RequestAndEntitiesMatchEnvironment env request entities →
-    typeOf x₂ c₁ env = Except.ok (ty, c₂) →
-    GuardedCapabilitiesInvariant x₂ c₂ request entities ∧
-    ∃ v, EvaluatesTo x₂ request entities v ∧ InstanceOfType v ty) :
+  (ih₁ : TypeOfIsSound x₁)
+  (ih₂ : TypeOfIsSound x₂) :
   GuardedCapabilitiesInvariant (Expr.and x₁ x₂) c₂ request entities ∧
   ∃ v, EvaluatesTo (Expr.and x₁ x₂) request entities v ∧ InstanceOfType v ty
 := by

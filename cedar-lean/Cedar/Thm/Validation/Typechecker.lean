@@ -14,10 +14,10 @@
  limitations under the License.
 -/
 
-import Cedar.Thm.Validation.Typechecker.Basic
 import Cedar.Thm.Validation.Typechecker.And
 import Cedar.Thm.Validation.Typechecker.GetAttr
 import Cedar.Thm.Validation.Typechecker.HasAttr
+import Cedar.Thm.Validation.Typechecker.IfThenElse
 import Cedar.Thm.Validation.Typechecker.LitVar
 import Cedar.Thm.Validation.Typechecker.Or
 import Cedar.Thm.Validation.Typechecker.UnaryApp
@@ -53,7 +53,11 @@ theorem type_of_is_sound {e : Expr} {c₁ c₂ : Capabilities} {env : Environmen
   match e with
   | .lit l => exact type_of_lit_is_sound h₃
   | .var var => exact type_of_var_is_sound h₂ h₃
-  | .ite x₁ x₂ x₃ => sorry
+  | .ite x₁ x₂ x₃ =>
+    rcases (@type_of_is_sound x₁) with ih₁
+    rcases (@type_of_is_sound x₂) with ih₂
+    rcases (@type_of_is_sound x₃) with ih₃
+    exact type_of_ite_is_sound h₁ h₂ h₃ ih₁ ih₂ ih₃
   | .and x₁ x₂ =>
     rcases (@type_of_is_sound x₁) with ih₁
     rcases (@type_of_is_sound x₂) with ih₂

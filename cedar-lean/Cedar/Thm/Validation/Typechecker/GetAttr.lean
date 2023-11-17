@@ -15,8 +15,6 @@
 -/
 
 import Cedar.Thm.Validation.Typechecker.Basic
-import Cedar.Thm.Validation.Typechecker.Types
-
 
 /-!
 This file proves that typechecking of `.getAttr` expressions is sound.
@@ -161,12 +159,7 @@ theorem type_of_getAttr_is_sound {x₁ : Expr} {a : Attr} {c₁ c₂ : Capabilit
   (h₁ : CapabilitiesInvariant c₁ request entities)
   (h₂ : RequestAndEntitiesMatchEnvironment env request entities)
   (h₃ : typeOf (Expr.getAttr x₁ a) c₁ env = Except.ok (ty, c₂))
-  (ih : ∀ {c₁ c₂ : Capabilities} {env : Environment} {ty : CedarType} {request : Request} {entities : Entities},
-      CapabilitiesInvariant c₁ request entities →
-      RequestAndEntitiesMatchEnvironment env request entities →
-      typeOf x₁ c₁ env = Except.ok (ty, c₂) →
-      GuardedCapabilitiesInvariant x₁ c₂ request entities ∧
-      ∃ v, EvaluatesTo x₁ request entities v ∧ InstanceOfType v ty) :
+  (ih : TypeOfIsSound x₁) :
   GuardedCapabilitiesInvariant (Expr.getAttr x₁ a) c₂ request entities ∧
   ∃ v, EvaluatesTo (Expr.getAttr x₁ a) request entities v ∧ InstanceOfType v ty
 := by

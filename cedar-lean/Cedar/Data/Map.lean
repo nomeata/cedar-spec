@@ -33,7 +33,7 @@ deriving Repr, DecidableEq, Repr, Inhabited
 
 namespace Map
 
-private def kvs {α : Type u} {β : Type v} : Map α β → List (Prod α β)
+def kvs {α : Type u} {β : Type v} : Map α β → List (Prod α β)
 | .mk kvs => kvs
 
 

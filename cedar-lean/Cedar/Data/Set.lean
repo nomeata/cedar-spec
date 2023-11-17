@@ -34,7 +34,7 @@ deriving Repr, DecidableEq, Inhabited, Lean.ToJson
 
 namespace Set
 
-private def elts {α : Type u} : (Set α) -> (List α)
+def elts {α : Type u} : (Set α) -> (List α)
 | .mk elts => elts
 
 open Except

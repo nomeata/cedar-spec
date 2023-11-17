@@ -17,7 +17,7 @@
 import Cedar.Spec
 import Cedar.Validation
 import Cedar.Thm.Util.Std
-
+import Cedar.Thm.Validation.Typechecker.Types
 
 /-!
 This file contains useful definitions and lemmas about the `Typechecker` functions.
@@ -71,6 +71,14 @@ The Capabilities output by the typechecking function will satisfy
 def GuardedCapabilitiesInvariant (e: Expr) (c: Capabilities) (request : Request) (entities : Entities) : Prop :=
   evaluate e request entities = .ok true →
   CapabilitiesInvariant c request entities
+
+def TypeOfIsSound (x₁ : Expr) : Prop :=
+  ∀ {c₁ c₂ : Capabilities} {env : Environment} {ty : CedarType} {request : Request} {entities : Entities},
+    CapabilitiesInvariant c₁ request entities →
+    RequestAndEntitiesMatchEnvironment env request entities →
+    typeOf x₁ c₁ env = Except.ok (ty, c₂) →
+    GuardedCapabilitiesInvariant x₁ c₂ request entities ∧
+    ∃ v, EvaluatesTo x₁ request entities v ∧ InstanceOfType v ty
 
 ----- Capability lemmas -----
 

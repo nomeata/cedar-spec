@@ -15,8 +15,6 @@
 -/
 
 import Cedar.Thm.Validation.Typechecker.Basic
-import Cedar.Thm.Validation.Typechecker.Types
-
 
 /-!
 This file proves that typechecking of `.lit` and `.var` expressions is sound.

@@ -161,18 +161,59 @@ theorem instance_of_anyBool_is_bool {v₁ : Value} :
   ∃ b, v₁ = .prim (.bool b)
 := by exact instance_of_bool_is_bool
 
-theorem instance_of_lubBool {b : Bool} {bty₁ bty₂ : BoolType} :
-  (InstanceOfType (Value.prim (Prim.bool b)) (CedarType.bool bty₁) ∨
-   InstanceOfType (Value.prim (Prim.bool b)) (CedarType.bool bty₂)) →
-  InstanceOfType (Value.prim (Prim.bool b)) (CedarType.bool (lubBool bty₁ bty₂))
+theorem instance_of_lubBool {v : Value} {bty₁ bty₂ : BoolType} :
+  (InstanceOfType v (CedarType.bool bty₁) ∨ InstanceOfType v (CedarType.bool bty₂)) →
+  InstanceOfType v (CedarType.bool (lubBool bty₁ bty₂))
 := by
   intro h₁ ; cases h₁ <;> simp [lubBool] <;> split <;>
-  try exact bool_is_instance_of_anyBool b
-  all_goals {
-    rename_i h₂ h₃
-    subst h₃
+  try { assumption } <;>
+  rename_i h₂ h₃ <;>
+  rcases (instance_of_bool_is_bool h₂) with ⟨b, h₂⟩ <;>
+  subst h₂ <;>
+  try { try exact bool_is_instance_of_anyBool b }
+  subst h₃ ; exact h₂
+
+theorem instance_of_lub {v : Value} {ty ty₁ ty₂ : CedarType}
+  (h₁ : .some ty = (ty₁ ⊔ ty₂))
+  (h₂ : InstanceOfType v ty₁ ∨ InstanceOfType v ty₂) :
+  InstanceOfType v ty
+:= by
+  unfold lub? at h₁
+  -- Generalizing here is a hack to let us retain hypthoses of the form ty₁ =
+  -- CedarType.set s₁ after the split.  We need these for the termination proof.
+  generalize hty₁ : ty₁ = vty₁
+  generalize hty₂ : ty₂ = vty₂
+  simp [hty₁, hty₂] at h₂
+  split at h₁
+  case h_1 =>
+    simp at h₁ ; subst h₁ hty₁ hty₂
+    exact instance_of_lubBool h₂
+  case h_2 _ _ sty₁ sty₂ =>
+    cases h₃ : sty₁ ⊔ sty₂ <;> simp [h₃] at h₁
+    rename_i sty
+    subst h₁ ; simp [←hty₁, ←hty₂] at h₂
+    cases h₂ <;> rename_i h₄
+    all_goals {
+      cases h₄ ; rename_i s h₄
+      apply InstanceOfType.instance_of_set
+      intro w h₅
+      specialize h₄ w h₅
+      rw [eq_comm] at h₃
+      apply instance_of_lub h₃ (by simp [h₄])
+    }
+  case h_3 =>
+    -- TODO: record case. Needs mutual recursion with proof for lubRecordType,
+    -- and likely hairy termination lemmas. Alternatively, we could rewrite
+    -- lub? to avoid mutual recursion (using the same trick as for `evaluate`).
+    -- That may make this proof easier.
+    sorry
+  case h_4 =>
+    split at h₁ <;> simp at h₁
+    rename_i h₃
+    subst h₁ h₃ hty₁ hty₂
+    simp at h₂
     exact h₂
-  }
+termination_by instance_of_lub _ _ ty₁ ty₂ _ _ => (sizeOf ty₁, sizeOf ty₂)
 
 theorem instance_of_int_is_int {v₁ : Value} :
   InstanceOfType v₁ CedarType.int →
