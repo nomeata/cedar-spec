@@ -174,7 +174,7 @@ theorem instance_of_lubBool {v : Value} {bty₁ bty₂ : BoolType} :
   subst h₃ ; exact h₂
 
 theorem instance_of_lub {v : Value} {ty ty₁ ty₂ : CedarType}
-  (h₁ : .some ty = (ty₁ ⊔ ty₂))
+  (h₁ : (ty₁ ⊔ ty₂) = .some ty)
   (h₂ : InstanceOfType v ty₁ ∨ InstanceOfType v ty₂) :
   InstanceOfType v ty
 := by
@@ -198,7 +198,6 @@ theorem instance_of_lub {v : Value} {ty ty₁ ty₂ : CedarType}
       apply InstanceOfType.instance_of_set
       intro w h₅
       specialize h₄ w h₅
-      rw [eq_comm] at h₃
       apply instance_of_lub h₃ (by simp [h₄])
     }
   case h_3 =>

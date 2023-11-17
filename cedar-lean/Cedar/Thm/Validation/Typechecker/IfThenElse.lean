@@ -38,7 +38,7 @@ theorem type_of_ite_inversion {x₁ x₂ x₃ : Expr} {c c' : Capabilities} {env
     | .anyBool =>
       typeOf x₂ (c ∪ c₁) env = .ok (ty₂, c₂) ∧
       typeOf x₃ c env = .ok (ty₃, c₃) ∧
-      (.some ty) = (ty₂ ⊔ ty₃) ∧ c' = (c₁ ∪ c₂) ∩ c₃
+      (ty₂ ⊔ ty₃) = (.some ty) ∧ c' = (c₁ ∪ c₂) ∩ c₃
 := by
   simp [typeOf] at h₁
   cases h₂ : typeOf x₁ c env <;> simp [h₂, typeOfIf] at *
@@ -66,7 +66,6 @@ theorem type_of_ite_inversion {x₁ x₂ x₃ : Expr} {c c' : Capabilities} {env
     exists res₂.fst, res₂.snd
     simp only [Except.ok.injEq, true_and]
     exists res₃.fst, res₃.snd
-    simp [hty]
 
 theorem type_of_ite_is_sound {x₁ x₂ x₃ : Expr} {c₁ c₂ : Capabilities} {env : Environment} {ty : CedarType} {request : Request} {entities : Entities}
   (h₁ : CapabilitiesInvariant c₁ request entities)
