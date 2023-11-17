@@ -15,8 +15,8 @@
 -/
 
 import Cedar.Spec
-import Cedar.Thm.Lemmas.Std
 import Cedar.Validation
+import Cedar.Thm.Util.Std
 
 /-!
 This file contains useful definitions and lemmas about Cedar types.

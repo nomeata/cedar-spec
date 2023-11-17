@@ -16,7 +16,7 @@
 
 import Cedar.Spec
 import Cedar.Validation
-import Cedar.Thm.Lemmas.Typechecker
+import Cedar.Thm.Validation.Typechecker
 
 /-!
 This file contains useful definitions and lemmas about the `Validator` functions.

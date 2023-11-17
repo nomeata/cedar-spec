@@ -14,8 +14,7 @@
  limitations under the License.
 -/
 
-import Cedar.Spec
-import Cedar.Thm.Lemmas.Validator
+import Cedar.Thm.Validation.Validator
 import Mathlib.Data.List.Basic
 
 /-!
