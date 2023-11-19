@@ -14,10 +14,13 @@
  limitations under the License.
 -/
 
+import Std
+
 /-!
 This file contains useful auxiliary lemmas about standard Lean datatypes and
 functions.
 -/
+
 
 -- The `Except.bind_*` theorems let `simp` reduce terms that use the `do` notation.
 @[simp] theorem Except.bind_ok_T (a : α) (f : α → ExceptT ε Id β) :
@@ -44,3 +47,13 @@ functions.
 @[simp] theorem Option.bind_none_fun (f : α → Option β) :
   (bind Option.none f : Option β) = Option.none
 := by rfl
+
+-- Nat lemmas to help with termination proofs.
+
+theorem Nat.lt_add_of_one_and_other (n m : Nat) :
+  n < 1 + m + n
+:= by
+  rw [Nat.add_comm]
+  apply Nat.lt_add_of_pos_right
+  apply Nat.add_pos_left
+  apply Nat.one_pos

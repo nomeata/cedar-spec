@@ -283,8 +283,60 @@ theorem ext_type_is_inhabited (xty : ExtType) :
   case ipAddr  => exists (Ext.ipaddr (default : IPAddr))
   case decimal => exists (Ext.decimal (default : Ext.Decimal))
 
+theorem instance_of_record_nil :
+  InstanceOfType (Value.record (Map.mk [])) (CedarType.record (Map.mk []))
+:= by
+  apply InstanceOfType.instance_of_record <;>
+  simp [Map.contains, Map.find?, Map.kvs, List.find?]
 
-mutual
+theorem instance_of_record_cons {hd : Attr × Qualified CedarType} {tl : List (Attr × Qualified CedarType)} {rhd : Value} {rtl : List (Attr × Value)}
+  (h₁ : InstanceOfType rhd (Qualified.getType hd.snd))
+  (h₂ : InstanceOfType (Value.record (Map.mk rtl)) (CedarType.record (Map.mk tl))) :
+  InstanceOfType (Value.record (Map.mk ((hd.fst, rhd) :: rtl))) (CedarType.record (Map.mk (hd :: tl)))
+:= by
+  cases h₂ ; rename_i h₂ h₃ h₄
+  apply InstanceOfType.instance_of_record
+  case h₁ =>
+    intro a
+    specialize h₂ a
+    simp [Map.contains, Map.find?, Map.kvs, List.find?]
+    simp [Map.contains, Map.find?, Map.kvs, List.find?] at h₂
+    cases h₅ : hd.fst == a <;> simp [h₅]
+    exact h₂
+  case h₂ =>
+    intro a v qty
+    specialize h₃ a v qty
+    simp [Map.contains, Map.find?, Map.kvs, List.find?]
+    simp [Map.contains, Map.find?, Map.kvs, List.find?] at h₃
+    cases h₅ : hd.fst == a <;> simp [h₅]
+    case false => exact h₃
+    case true =>
+      intro h₆ h₇
+      subst h₆ h₇
+      exact h₁
+  case h₃ =>
+    intro a qty
+    specialize h₄ a qty
+    simp [Map.contains, Map.find?, Map.kvs, List.find?]
+    simp [Map.contains, Map.find?, Map.kvs, List.find?] at h₄
+    cases h₅ : hd.fst == a <;> simp [h₅]
+    exact h₄
+
+
+theorem sizeOf_attribute_lt_sizeOf_qualified (aqty : Attr × Qualified CedarType) :
+  sizeOf (Qualified.getType aqty.snd) < sizeOf aqty
+:= by
+  simp [Qualified.getType]
+  split
+  all_goals {
+    rename_i aty h
+    apply @Nat.lt_trans _ (sizeOf aqty.snd)
+    case h₁ => simp [h, ←Nat.succ_eq_one_add]
+    case a =>
+      cases aqty ; simp [Prod.snd]
+      apply Nat.lt_add_of_one_and_other
+  }
+
 theorem type_is_inhabited (ty : CedarType) :
   ∃ v, InstanceOfType v ty
 := by
@@ -313,20 +365,30 @@ theorem type_is_inhabited (ty : CedarType) :
     rcases (ext_type_is_inhabited xty) with ⟨x, h₁⟩
     exists (.ext x)
     apply InstanceOfType.instance_of_ext _ _ h₁
-  | .record rty =>
-    rcases (record_type_is_inhabited rty) with ⟨r, h₁, h₂, h₃⟩
-    exists (.record r)
-    apply InstanceOfType.instance_of_record _ _ h₁ h₂ h₃
-
-theorem record_type_is_inhabited (rty : RecordType) :
-  ∃ (r : Map Attr Value),
-    (∀ (k : Attr), r.contains k → rty.contains k) ∧
-    (∀ (k : Attr) (v : Value) (qty : QualifiedType),
-      r.find? k = some v → rty.find? k = some qty → InstanceOfType v qty.getType) ∧
-    (∀ (k : Attr) (qty : QualifiedType), rty.find? k = some qty → qty.isRequired → r.contains k)
-:= by sorry
-
-end
+  | .record (Map.mk rty) =>
+    cases rty
+    case nil =>
+      exists (.record (Map.mk []))
+      exact instance_of_record_nil
+    case cons hd tl =>
+      have _ : sizeOf hd.snd.getType < 1 + (1 + (1 + sizeOf hd + sizeOf tl)) := by -- termination
+        apply @Nat.lt_trans _ (1 + (1 + sizeOf hd + sizeOf tl)) <;>
+        try { simp [←Nat.succ_eq_one_add] }
+        apply @Nat.lt_trans _ (1 + sizeOf hd + sizeOf tl) <;>
+        try { simp [←Nat.succ_eq_one_add] }
+        apply @Nat.lt_trans _ (sizeOf hd + sizeOf tl)
+        case h₁ =>
+          apply Nat.lt_add_right
+          apply sizeOf_attribute_lt_sizeOf_qualified
+        case a =>
+          simp [Nat.add_assoc]
+          simp [←Nat.succ_eq_one_add]
+      rcases (type_is_inhabited hd.snd.getType) with ⟨rhd, h₂⟩
+      rcases (type_is_inhabited (.record (Map.mk tl))) with ⟨vtl, h₃⟩
+      rcases (instance_of_record_type_is_record h₃) with ⟨mtl, h₄⟩
+      subst h₄ ; cases mtl ; rename_i rtl
+      exists (.record (Map.mk ((hd.fst, rhd) :: rtl)))
+      exact instance_of_record_cons h₂ h₃
 
 theorem instance_of_lubBool_left {v : Value} {bty₁ bty₂ : BoolType} :
   InstanceOfType v (CedarType.bool bty₁) →
@@ -373,10 +435,7 @@ theorem sizeOf_attr_type_lt_sizeOf_record_type {a : Attr} {qty : QualifiedType }
         apply @Nat.lt_trans _ (sizeOf (a', qty))
         case h₁ =>
           simp only [Prod.mk.sizeOf_spec]
-          rw [Nat.add_comm]
-          apply Nat.lt_add_of_pos_right
-          apply Nat.add_pos_left
-          apply Nat.one_pos
+          apply Nat.lt_add_of_one_and_other
         case a => exact List.sizeOf_lt_of_mem h₄
       case a => simp [←Nat.succ_eq_one_add]
     case a => simp [←Nat.succ_eq_one_add]
