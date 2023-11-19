@@ -17,6 +17,7 @@
 import Cedar.Spec
 import Cedar.Validation
 import Cedar.Thm.Util.Std
+import Cedar.Thm.Validation.Typechecker.LUB
 
 /-!
 This file contains useful definitions and lemmas about Cedar types.
@@ -160,59 +161,6 @@ theorem instance_of_anyBool_is_bool {v₁ : Value} :
   InstanceOfType v₁ (CedarType.bool BoolType.anyBool) →
   ∃ b, v₁ = .prim (.bool b)
 := by exact instance_of_bool_is_bool
-
-theorem instance_of_lubBool {v : Value} {bty₁ bty₂ : BoolType} :
-  (InstanceOfType v (CedarType.bool bty₁) ∨ InstanceOfType v (CedarType.bool bty₂)) →
-  InstanceOfType v (CedarType.bool (lubBool bty₁ bty₂))
-:= by
-  intro h₁ ; cases h₁ <;> simp [lubBool] <;> split <;>
-  try { assumption } <;>
-  rename_i h₂ h₃ <;>
-  rcases (instance_of_bool_is_bool h₂) with ⟨b, h₂⟩ <;>
-  subst h₂ <;>
-  try { try exact bool_is_instance_of_anyBool b }
-  subst h₃ ; exact h₂
-
-theorem instance_of_lub {v : Value} {ty ty₁ ty₂ : CedarType}
-  (h₁ : (ty₁ ⊔ ty₂) = .some ty)
-  (h₂ : InstanceOfType v ty₁ ∨ InstanceOfType v ty₂) :
-  InstanceOfType v ty
-:= by
-  unfold lub? at h₁
-  -- Generalizing here is a hack to let us retain hypthoses of the form ty₁ =
-  -- CedarType.set s₁ after the split.  We need these for the termination proof.
-  generalize hty₁ : ty₁ = vty₁
-  generalize hty₂ : ty₂ = vty₂
-  simp [hty₁, hty₂] at h₂
-  split at h₁
-  case h_1 =>
-    simp at h₁ ; subst h₁ hty₁ hty₂
-    exact instance_of_lubBool h₂
-  case h_2 _ _ sty₁ sty₂ =>
-    cases h₃ : sty₁ ⊔ sty₂ <;> simp [h₃] at h₁
-    rename_i sty
-    subst h₁ ; simp [←hty₁, ←hty₂] at h₂
-    cases h₂ <;> rename_i h₄
-    all_goals {
-      cases h₄ ; rename_i s h₄
-      apply InstanceOfType.instance_of_set
-      intro w h₅
-      specialize h₄ w h₅
-      apply instance_of_lub h₃ (by simp [h₄])
-    }
-  case h_3 =>
-    -- TODO: record case. Needs mutual recursion with proof for lubRecordType,
-    -- and likely hairy termination lemmas. Alternatively, we could rewrite
-    -- lub? to avoid mutual recursion (using the same trick as for `evaluate`).
-    -- That may make this proof easier.
-    sorry
-  case h_4 =>
-    split at h₁ <;> simp at h₁
-    rename_i h₃
-    subst h₁ h₃ hty₁ hty₂
-    simp at h₂
-    exact h₂
-termination_by instance_of_lub _ _ ty₁ ty₂ _ _ => (sizeOf ty₁, sizeOf ty₂)
 
 theorem instance_of_int_is_int {v₁ : Value} :
   InstanceOfType v₁ CedarType.int →
@@ -379,5 +327,128 @@ theorem record_type_is_inhabited (rty : RecordType) :
 := by sorry
 
 end
+
+theorem instance_of_lubBool_left {v : Value} {bty₁ bty₂ : BoolType} :
+  InstanceOfType v (CedarType.bool bty₁) →
+  InstanceOfType v (CedarType.bool (lubBool bty₁ bty₂))
+:= by
+  intro h₁ ; cases h₁
+  simp [lubBool]
+  split <;> rename_i b h₁ h₂
+  case inl =>
+    subst h₂
+    apply InstanceOfType.instance_of_bool b bty₁ h₁
+  case inr => try exact bool_is_instance_of_anyBool b
+
+theorem instance_of_lubBool {v : Value} {bty₁ bty₂ : BoolType} :
+  (InstanceOfType v (CedarType.bool bty₁) ∨ InstanceOfType v (CedarType.bool bty₂)) →
+  InstanceOfType v (CedarType.bool (lubBool bty₁ bty₂))
+:= by
+  intro h₁ ; cases h₁
+  case inl h₂ =>
+    exact instance_of_lubBool_left h₂
+  case inr h₂ =>
+    rw [lubBool_comm]
+    exact instance_of_lubBool_left h₂
+
+theorem sizeOf_attr_type_lt_sizeOf_record_type {a : Attr} {qty : QualifiedType } {rty : List (Attr × Qualified CedarType) }
+  (h₁ : CedarType.record (Map.mk rty) = ty)
+  (h₂ : Map.find? (Map.mk rty) a = .some qty) :
+  sizeOf qty.getType < sizeOf ty
+:= by
+  subst h₁
+  apply @Nat.lt_trans _ (sizeOf qty)
+  case h₁ =>
+    simp [Qualified.getType]
+    split <;> simp [←Nat.succ_eq_one_add]
+  case a =>
+    apply @Nat.lt_trans _ (sizeOf (Map.mk rty))
+    case h₁ =>
+      apply @Nat.lt_trans _ (sizeOf rty)
+      case h₁ =>
+        simp [Map.find?, Map.kvs] at h₂
+        split at h₂ <;> simp at h₂
+        rename_i a' qty' h₃ ; rw [eq_comm] at h₂ ; subst h₂
+        rcases (List.mem_of_find?_eq_some h₃) with h₄
+        apply @Nat.lt_trans _ (sizeOf (a', qty))
+        case h₁ =>
+          simp only [Prod.mk.sizeOf_spec]
+          rw [Nat.add_comm]
+          apply Nat.lt_add_of_pos_right
+          apply Nat.add_pos_left
+          apply Nat.one_pos
+        case a => exact List.sizeOf_lt_of_mem h₄
+      case a => simp [←Nat.succ_eq_one_add]
+    case a => simp [←Nat.succ_eq_one_add]
+
+
+theorem instance_of_lub_left {v : Value} {ty ty₁ ty₂ : CedarType}
+  (h₁ : (ty₁ ⊔ ty₂) = .some ty)
+  (h₂ : InstanceOfType v ty₁) :
+  InstanceOfType v ty
+:= by
+  unfold lub? at h₁
+  -- Generalizing here lets us retain hypotheses of the form ty₁ = CedarType.set
+  -- s₁ after the split.  We need these for the termination proof.
+  generalize hty₁ : ty₁ = ty₁'
+  generalize hty₂ : ty₂ = ty₂'
+  simp [hty₁, hty₂] at h₂
+  split at h₁
+  case h_1 =>
+    simp at h₁ ; subst h₁ hty₁ hty₂
+    exact instance_of_lubBool_left h₂
+  case h_2 _ _ sty₁ sty₂ =>
+    cases h₃ : sty₁ ⊔ sty₂ <;> simp [h₃] at h₁
+    rename_i sty
+    subst h₁ ; simp [←hty₁, ←hty₂] at h₂
+    cases h₂ ; rename_i h₄
+    apply InstanceOfType.instance_of_set
+    intro w h₅
+    specialize h₄ w h₅
+    apply instance_of_lub_left h₃ (by simp [h₄])
+  case h_3 _ _ rty₁ rty₂ =>
+    cases h₃ : lubRecordType rty₁ rty₂ <;> simp [h₃] at h₁
+    rename_i rty
+    rcases (lubRecordType_is_lub_of_record_types h₃) with hl
+    subst h₁ ; simp [←hty₁] at h₂
+    cases h₂ ; rename_i r h₄ h₅ h₆
+    apply InstanceOfType.instance_of_record
+    case h₁ =>
+      intro a h₇
+      specialize h₄ a h₇
+      exact lubRecord_contains_left hl h₄
+    case h₂ =>
+      intro a v qty h₇ h₈
+      rcases (lubRecord_find_implies_find hl h₈) with ⟨qty₁, qty₂, h₉, _, h₁₁⟩
+      specialize h₅ a v qty₁ h₇ h₉
+      rcases (lubQualified_is_lub_of_getType h₁₁) with h₁₂
+      have _ : sizeOf qty₁.getType < sizeOf ty₁' :=  -- termination
+        sizeOf_attr_type_lt_sizeOf_record_type hty₁ h₉
+      apply instance_of_lub_left h₁₂ h₅
+    case h₃ =>
+      intro a qty h₇ h₈
+      rcases (lubRecord_find_implies_find_left hl h₇) with ⟨qty₁, h₉, h₁₀⟩
+      apply h₆ a qty₁ h₉
+      simp [h₁₀, h₈]
+  case h_4 =>
+    split at h₁ <;> simp at h₁
+    rename_i h₃
+    subst h₁ h₃ hty₁ hty₂
+    exact h₂
+termination_by
+  instance_of_lub_left _ _ ty₁ ty₂ _ _ => (sizeOf ty₁, sizeOf ty₂)
+
+theorem instance_of_lub {v : Value} {ty ty₁ ty₂ : CedarType}
+  (h₁ : (ty₁ ⊔ ty₂) = .some ty)
+  (h₂ : InstanceOfType v ty₁ ∨ InstanceOfType v ty₂) :
+  InstanceOfType v ty
+:= by
+  cases h₂
+  case inl h₃ =>
+    apply instance_of_lub_left h₁ h₃
+  case inr h₃ =>
+    rw [lub_comm] at h₁
+    apply instance_of_lub_left h₁ h₃
+
 
 end Cedar.Thm
