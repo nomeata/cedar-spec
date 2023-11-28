@@ -83,6 +83,7 @@ const LOG_FILENAME_ERR_TOO_DEEP: &str = "./logs/err_too_deep.txt";
 const LOG_FILENAME_ERR_NO_VALID_TYPES: &str = "./logs/err_no_valid_types.txt";
 const LOG_FILENAME_ERR_EXTENSIONS_DISABLED: &str = "./logs/err_extensions_disabled.txt";
 const LOG_FILENAME_ERR_LIKE_DISABLED: &str = "./logs/err_like_disabled.txt";
+const LOG_FILENAME_ERR_CONTEXT: &str = "./logs/err_context.txt";
 const LOG_FILENAME_ERR_INCORRECT_FORMAT: &str = "./logs/err_incorrect_format.txt";
 const LOG_FILENAME_ERR_OTHER: &str = "./logs/err_other.txt";
 const LOG_FILENAME_ENTITIES_ERROR: &str = "./logs/err_entities.txt";
@@ -142,6 +143,9 @@ fn log_err<T>(res: Result<T>, doing_what: &str) -> Result<T> {
             }
             Err(Error::LikeDisabled) => {
                 checkpoint(LOG_FILENAME_ERR_LIKE_DISABLED.to_string() + "_" + doing_what)
+            }
+            Err(Error::ContextError(_)) => {
+                checkpoint(LOG_FILENAME_ERR_CONTEXT.to_string() + "_" + doing_what)
             }
             Err(Error::IncorrectFormat {
                 doing_what: doing_2,
@@ -350,11 +354,10 @@ fuzz_target!(|input: FuzzTargetInput| {
                 for r in input.requests.into_iter() {
                     let q = ast::Request::from(r);
                     debug!("Request: {q}");
-                    let ans = authorizer.is_authorized(&q, &policyset, &entities);
+                    let ans = authorizer.is_authorized(q.clone(), &policyset, &entities);
 
                     let unexpected_errs = ans.diagnostics.errors.iter().filter_map(|error|
                         match error {
-                            cedar_policy::AuthorizationError::AttributeEvaluationError(_) => None,
                             cedar_policy::AuthorizationError::PolicyEvaluationError { error, .. } => match error.error_kind() {
                                 // Evaluation errors the validator should prevent.
                                 cedar_policy::EvaluationErrorKind::UnspecifiedEntityAccess(_) |

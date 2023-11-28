@@ -89,9 +89,9 @@ For every entity in the store,
 -/
 def InstanceOfEntityTypeStore (entities : Entities) (ets: EntityTypeStore) : Prop :=
   ∀ uid data, entities.find? uid = some data →
-    ∃ attrTys ancestorTys, ets.find? uid.ty = some (attrTys, ancestorTys) ∧
-      InstanceOfType data.attrs (.record attrTys) ∧
-      ∀ ancestor, ancestor ∈ data.ancestors → ancestor.ty ∈ ancestorTys
+    ∃ entry, ets.find? uid.ty = some entry ∧
+      InstanceOfType data.attrs (.record entry.attrs) ∧
+      ∀ ancestor, ancestor ∈ data.ancestors → ancestor.ty ∈ entry.ancestors
 
 /--
 For every action in the entity store, the action's ancestors are consistent
@@ -99,8 +99,8 @@ with the ancestor information in the action store.
 -/
 def InstanceOfActionStore (entities : Entities) (as: ActionStore) : Prop :=
   ∀ uid data, entities.find? uid = some data → as.contains uid →
-    ∃ ancestors, as.find? uid = some ancestors →
-      ∀ ancestor, ancestor ∈ data.ancestors → ancestor ∈ ancestors
+    ∃ entry, as.find? uid = some entry →
+      ∀ ancestor, ancestor ∈ data.ancestors → ancestor ∈ entry.ancestors
 
 def RequestAndEntitiesMatchEnvironment (env : Environment) (request : Request) (entities : Entities) : Prop :=
   InstanceOfRequestType request env.reqty ∧
@@ -268,7 +268,7 @@ theorem well_typed_entity_attributes {env : Environment} {request : Request} {en
   rcases h₁ with ⟨_, h₁, _⟩
   simp [InstanceOfEntityTypeStore] at h₁
   specialize h₁ uid d h₂
-  rcases h₁ with ⟨rty', _, h₁₂, h₁, _⟩
+  rcases h₁ with ⟨entry, h₁₂, h₁, _⟩
   unfold EntityTypeStore.attrs? at h₃
   simp [h₁₂] at h₃
   subst h₃
