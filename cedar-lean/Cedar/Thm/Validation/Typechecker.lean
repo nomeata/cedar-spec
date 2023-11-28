@@ -15,6 +15,7 @@
 -/
 
 import Cedar.Thm.Validation.Typechecker.And
+import Cedar.Thm.Validation.Typechecker.Call
 import Cedar.Thm.Validation.Typechecker.GetAttr
 import Cedar.Thm.Validation.Typechecker.HasAttr
 import Cedar.Thm.Validation.Typechecker.IfThenElse
@@ -83,4 +84,8 @@ theorem type_of_is_sound {e : Expr} {c₁ c₂ : Capabilities} {env : Environmen
     exact type_of_getAttr_is_sound h₁ h₂ h₃ ih
   | .set xs => sorry
   | .record axs => sorry
-  | .call xfn xs => sorry
+  | .call xfn xs =>
+    have ih : ∀ xᵢ, xᵢ ∈ xs → TypeOfIsSound xᵢ := by
+      intro xᵢ hᵢ
+      exact @type_of_is_sound xᵢ
+    exact type_of_call_is_sound h₁ h₂ h₃ ih

@@ -191,6 +191,30 @@ theorem instance_of_entity_type_is_entity {ety : EntityType} :
   exists euid
   simp [h₁]
 
+theorem instance_of_decimal_type_is_decimal {v₁ : Value} :
+  InstanceOfType v₁ (CedarType.ext ExtType.decimal) →
+  ∃ d, v₁ = .ext (.decimal d)
+:= by
+  intro h₁
+  cases h₁
+  rename_i x h₁
+  simp [InstanceOfExtType] at h₁
+  split at h₁ <;> try { contradiction }
+  rename_i d _
+  exists d
+
+theorem instance_of_ipAddr_type_is_ipAddr {v₁ : Value} :
+  InstanceOfType v₁ (CedarType.ext ExtType.ipAddr) →
+  ∃ d, v₁ = .ext (.ipaddr d)
+:= by
+  intro h₁
+  cases h₁
+  rename_i x h₁
+  simp [InstanceOfExtType] at h₁
+  split at h₁ <;> try { contradiction }
+  rename_i ip _
+  exists ip
+
 theorem instance_of_record_type_is_record {rty : RecordType} :
   InstanceOfType v₁ (.record rty) →
   ∃ r, v₁ = .record r
