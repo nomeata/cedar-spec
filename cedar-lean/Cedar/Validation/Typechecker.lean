@@ -214,7 +214,7 @@ def typeOfSet (tys : List CedarType) : ResultType :=
   match tys with
   | []       => err .emptySetErr
   | hd :: tl =>
-    match tl.foldrM lub? hd with
+    match tl.foldlM lub? hd with
     | .some ty => ok (.set ty)
     | .none    => err (.incompatibleSetTypes tys)
 

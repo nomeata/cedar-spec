@@ -26,39 +26,6 @@ open Cedar.Data
 open Cedar.Spec
 open Cedar.Validation
 
-/-
-
-def typeOfCall (xfn : ExtFun) (tys : List CedarType) (xs : List Expr) : ResultType :=
-  match xfn, tys with
-  | .decimal, _  => typeOfConstructor Cedar.Spec.Ext.Decimal.decimal xs (.ext .decimal)
-  | .ip, _       => typeOfConstructor Cedar.Spec.Ext.IPAddr.ip xs (.ext .ipAddr)
-  | .lessThan, [.ext .decimal, .ext .decimal]           => ok (.bool .anyBool)
-  | .lessThanOrEqual, [.ext .decimal, .ext .decimal]    => ok (.bool .anyBool)
-  | .greaterThan, [.ext .decimal, .ext .decimal]        => ok (.bool .anyBool)
-  | .greaterThanOrEqual, [.ext .decimal, .ext .decimal] => ok (.bool .anyBool)
-  | .isIpv4, [.ext .ipAddr]                             => ok (.bool .anyBool)
-  | .isIpv6, [.ext .ipAddr]                             => ok (.bool .anyBool)
-  | .isLoopback, [.ext .ipAddr]                         => ok (.bool .anyBool)
-  | .isMulticast, [.ext .ipAddr]                        => ok (.bool .anyBool)
-  | .isInRange, [.ext .ipAddr, .ext .ipAddr]            => ok (.bool .anyBool)
-  | _, _         => err (.extensionErr xs)
-
-
-theorem type_of_call_inversion {xfn : ExtFun} {xs : List Expr} {c c' : Capabilities} {env : Environment} {ty : CedarType}
-  (h₁ : typeOf (Expr.call xfn xs) c env = Except.ok (ty, c')) :
-  c' = ∅ ∧
-  match xfn with
-  | .lessThan | .lessThanOrEqual |
-    .greaterThan | .greaterThanOrEqual =>
-    ty = .bool .anyBool ∧
-    ∃ (x₁ x₂ : Expr),
-      xs = [x₁, x₂] ∧
-      typeOf x₁ c env = .ok (.ext .decimal) ∧
-      typeOf x₂ c env = .ok (.ext .decimal)
-
--/
-
-
 theorem type_of_call_decimal_inversion {xs : List Expr} {c c' : Capabilities} {env : Environment} {ty : CedarType}
   (h₁ : typeOf (Expr.call .decimal xs) c env = Except.ok (ty, c')) :
   ty = .ext .decimal ∧

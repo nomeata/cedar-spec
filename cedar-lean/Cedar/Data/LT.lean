@@ -43,6 +43,15 @@ theorem StrictLT.if_not_lt_gt_then_eq [LT α] [StrictLT α] (x y : α) :
   rcases (StrictLT.connected x y h₃) with h₄
   simp [h₁, h₂] at h₄
 
+theorem StrictLT.not_eq [LT α] [StrictLT α] (x y : α) :
+  x < y → ¬ x = y
+:= by
+  intro h₁
+  by_contra h₂
+  subst h₂
+  rcases (StrictLT.irreflexive x) with h₃
+  contradiction
+
 abbrev DecidableLT (α) [LT α] := DecidableRel (α := α) (· < ·)
 
 end Cedar.Data
@@ -182,6 +191,19 @@ instance Nat.strictLT : StrictLT Nat where
     simp [h₁] at h₂
     exact h₂
 
+instance Int.strictLT : StrictLT Int where
+  asymmetric a b   := by
+    intro h₁
+    rw [Int.not_lt]
+    rw [Int.lt_iff_le_not_le] at h₁
+    simp [h₁]
+  transitive a b c := Int.lt_trans
+  connected  a b   := by
+    intro h₁
+    rcases (Int.lt_trichotomy a b) with h₂
+    simp [h₁] at h₂
+    exact h₂
+
 instance UInt32.strictLT : StrictLT UInt32 where
   asymmetric a b   := by apply Nat.strictLT.asymmetric
   transitive a b c := by apply Nat.strictLT.transitive
@@ -216,4 +238,3 @@ instance String.strictLT : StrictLT String where
     simp [String.lt_iff, String.ext_iff]
     have h : StrictLT (List Char) := by apply List.strictLT
     apply h.connected
-
