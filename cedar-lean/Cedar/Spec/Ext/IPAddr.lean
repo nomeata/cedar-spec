@@ -14,16 +14,11 @@
  limitations under the License.
 -/
 
-import Std
-import Cedar.Data.LT
-
 /-! This file defines Cedar IpAddr values and functions. -/
 
 namespace Cedar.Spec.Ext
 
 namespace IPAddr
-
-open Cedar.Data
 
 ----- UInt128 -----
 
@@ -268,97 +263,6 @@ instance : LT IPNet where
 
 instance IPNet.decLt (d₁ d₂ : IPNet) : Decidable (d₁ < d₂) :=
 if h : IPNet.lt d₁ d₂ then isTrue h else isFalse h
-
-theorem IPNet.lt_asymm {a₁ a₂ p₁ p₂ : Nat} :
-  a₁ < a₂ ∨ a₁ = a₂ ∧ p₁ < p₂ → ¬(a₂ < a₁ ∨ a₂ = a₁ ∧ p₂ < p₁)
-:= by
-  intro h₁
-  rcases h₁ with h₁ | h₁ <;> by_contra h₂
-  case inl =>
-    rcases h₂ with h₂ | h₂
-    case inl =>
-      rcases (Nat.lt_asymm h₁) with h₂
-      contradiction
-    case inr =>
-      rcases (StrictLT.not_eq a₁ a₂ h₁) with h₃
-      rw [eq_comm] at h₃
-      simp [h₃] at h₂
-  case inr =>
-    simp [h₁] at h₂
-    rcases h₁ with ⟨_, h₁⟩
-    rcases (Nat.lt_asymm h₁) with h₃
-    contradiction
-
-theorem IPNet.lt_trans {a₁ a₂ a₃ p₁ p₂ p₃ : Nat}
-  (h₁ : a₁ < a₂ ∨ a₁ = a₂ ∧ p₁ < p₂)
-  (h₂ : a₂ < a₃ ∨ a₂ = a₃ ∧ p₂ < p₃) :
-  a₁ < a₃ ∨ a₁ = a₃ ∧ p₁ < p₃
-:= by
-  rcases h₁ with h₁ | h₁ <;> rcases h₂ with h₂ | h₂
-  case inl.inl =>
-    rcases (Nat.lt_trans h₁ h₂) with h₃ ; simp [h₃]
-  case inl.inr =>
-    rcases h₂ with ⟨h₂, _⟩ ; subst h₂ ; simp [h₁]
-  case inr.inl =>
-    rcases h₁ with ⟨h₁, _⟩ ; subst h₁ ; simp [h₂]
-  case inr.inr =>
-    rcases h₁ with ⟨hl₁, h₁⟩ ; subst hl₁
-    rcases h₂ with ⟨hl₂, h₂⟩ ; subst hl₂
-    rcases (Nat.lt_trans h₁ h₂) with h₃ ; simp [h₃]
-
-theorem IPNet.lt_conn {a₁ a₂ p₁ p₂ : Nat}
-  (h₁ : a₁ = a₂ → ¬p₁ = p₂) :
-  (a₁ < a₂ ∨ a₁ = a₂ ∧ p₁ < p₂) ∨ a₂ < a₁ ∨ a₂ = a₁ ∧ p₂ < p₁
-:= by
-  rcases (Nat.lt_trichotomy a₁ a₂) with h₂
-  rcases h₂ with h₂ | h₂ | h₂ <;> simp [h₂]
-  simp [h₂] at h₁
-  apply Nat.strictLT.connected ; simp [h₁]
-
-instance IPNet.strictLT : StrictLT IPNet where
-  asymmetric a b   := by
-    cases a <;> cases b <;> simp [LT.lt, IPNet.lt]
-    case V4 a₁ p₁ a₂ p₂ =>
-      cases a₁ ; rename_i a₁ ; cases a₁
-      cases a₂ ; rename_i a₂ ; cases a₂
-      cases p₁ ; cases p₂
-      simp only [Fin.mk.injEq]
-      exact IPNet.lt_asymm
-    case V6 a₁ p₁ a₂ p₂ =>
-      cases a₁ ; cases a₂ ; cases p₁ ; cases p₂
-      simp only
-      exact IPNet.lt_asymm
-  transitive a b c := by
-    intro h₁ h₂
-    simp [LT.lt, IPNet.lt] at h₁ h₂ ; split at h₁ <;> split at h₂ <;>
-    simp [LT.lt, IPNet.lt] at * <;>
-    rename_i h₃ <;>
-    rcases h₃ with ⟨h₃, h₄⟩ <;> subst h₃ h₄
-    case h_3 a₁ p₁ a₂ p₂ _ _ a₃ p₃ =>
-      cases a₁ ; rename_i a₁ ; cases a₁
-      cases a₂ ; rename_i a₂ ; cases a₂
-      cases a₃ ; rename_i a₃ ; cases a₃
-      cases p₁ ; cases p₂ ; cases p₃
-      simp only [Fin.mk.injEq] at *
-      exact IPNet.lt_trans h₁ h₂
-    case h_4 a₁ p₁ a₂ p₂ _ _ a₃ p₃ =>
-      cases a₁ ; cases a₂ ; cases a₃ ; cases p₁ ; cases p₂ ; cases p₃
-      simp only at *
-      exact IPNet.lt_trans h₁ h₂
-  connected  a b   := by
-    cases a <;> cases b <;> simp [LT.lt, IPNet.lt] <;> intro h₁
-    case V4 a₁ p₁ a₂ p₂ =>
-      cases a₁ ; rename_i a₁ ; cases a₁
-      cases a₂ ; rename_i a₂ ; cases a₂
-      cases p₁ ; cases p₂
-      simp at *
-      rename_i a₁ _ a₂ _ p₁ _ p₂ _
-      apply IPNet.lt_conn
-      intro h₂ ; simp [h₂] at h₁ ; exact h₁
-    case V6 a₁ p₁ a₂ p₂ =>
-      cases a₁ ; cases a₂ ; cases p₁ ; cases p₂
-      simp at *
-      exact IPNet.lt_conn h₁
 
 end IPAddr
 

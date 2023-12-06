@@ -14,14 +14,9 @@
  limitations under the License.
 -/
 
-import Std
-import Cedar.Data.LT
-
 /-! This file defines Cedar decimal values and functions. -/
 
 namespace Cedar.Spec.Ext
-
-open Cedar.Data
 
 /--
 A decimal number consists of an integer part and a fractional part.
@@ -84,24 +79,6 @@ if h : Decimal.le d₁ d₂ then isTrue h else isFalse h
 
 instance : Inhabited Decimal where
   default := Subtype.mk 0 (by simp)
-
-instance strictLT : StrictLT Decimal where
-  asymmetric a b   := by
-    cases a ; cases b
-    simp [LT.lt, Decimal.lt, Int.lt]
-    apply Int.strictLT.asymmetric
-  transitive a b c := by
-    simp [LT.lt, Decimal.lt, Int.lt]
-    exact Int.strictLT.transitive a b c
-  connected  a b   := by
-    simp [LT.lt, Decimal.lt, Int.lt]
-    intro h₁
-    apply Int.strictLT.connected a b
-    simp [h₁]
-    by_contra h₂
-    rcases (Subtype.eq h₂) with h₃
-    contradiction
-
 
 end Decimal
 

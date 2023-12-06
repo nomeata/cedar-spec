@@ -21,7 +21,6 @@ import Cedar.Spec.Ext.IPAddr
 
 namespace Cedar.Spec
 
-open Cedar.Data
 open Cedar.Spec.Ext
 
 ----- Definitions -----
@@ -53,48 +52,5 @@ instance : Coe Decimal Ext where
 
 instance : Coe IPAddr Ext where
   coe a := .ipaddr a
-
-
-instance Ext.strictLT : StrictLT Ext where
-  asymmetric a b   := by
-    cases a <;> cases b <;> simp [LT.lt, Ext.lt] <;>
-    rename_i x₁ x₂ <;> intro h₁
-    case decimal =>
-      rcases (Decimal.strictLT.asymmetric x₁ x₂) with h₂
-      simp [LT.lt] at h₂
-      cases h₃ : Decimal.lt x₁ x₂ <;>
-      simp [h₃] at h₁ h₂ ; simp [h₂]
-    case ipaddr =>
-      rcases (Cedar.Spec.Ext.IPAddr.IPNet.strictLT.asymmetric x₁ x₂) with h₂
-      simp [LT.lt] at h₂
-      cases h₃ : Cedar.Spec.Ext.IPAddr.IPNet.lt x₁ x₂ <;>
-      simp [h₃] at h₁ h₂ ; simp [h₂]
-  transitive a b c := by
-    cases a <;> cases b <;> cases c <;> simp [LT.lt, Ext.lt] <;>
-    rename_i x₁ x₂ x₃ <;> intro h₁ h₂
-    case decimal =>
-      rcases (Decimal.strictLT.transitive x₁ x₂ x₃) with h₃
-      simp [LT.lt] at h₃
-      cases h₄ : Decimal.lt x₁ x₂ <;> simp [h₄] at *
-      cases h₅ : Decimal.lt x₂ x₃ <;> simp [h₅] at *
-      simp [h₃]
-    case ipaddr =>
-      rcases (Cedar.Spec.Ext.IPAddr.IPNet.strictLT.transitive x₁ x₂ x₃) with h₃
-      simp [LT.lt] at h₃
-      cases h₄ : Cedar.Spec.Ext.IPAddr.IPNet.lt x₁ x₂ <;> simp [h₄] at *
-      cases h₅ : Cedar.Spec.Ext.IPAddr.IPNet.lt x₂ x₃ <;> simp [h₅] at *
-      simp [h₃]
-  connected  a b   := by
-    cases a <;> cases b <;> simp [LT.lt, Ext.lt] <;>
-    rename_i x₁ x₂ <;> intro h₁
-    case decimal =>
-      rcases (Decimal.strictLT.connected x₁ x₂) with h₂
-      simp [LT.lt, h₁] at h₂
-      rcases h₂ with h₂ | h₂ <;> simp [h₂]
-    case ipaddr =>
-      rcases (Cedar.Spec.Ext.IPAddr.IPNet.strictLT.connected x₁ x₂) with h₂
-      simp [LT.lt, h₁] at h₂
-      rcases h₂ with h₂ | h₂ <;> simp [h₂]
-
 
 end Cedar.Spec
