@@ -184,7 +184,7 @@ theorem type_of_set_is_sound_err {xs : List Expr} {c₁ : Capabilities} {env : E
   (h₁ : CapabilitiesInvariant c₁ request entities)
   (h₂ : RequestAndEntitiesMatchEnvironment env request entities)
   (h₄ : ∀ (xᵢ : Expr), xᵢ ∈ xs → ∃ tyᵢ cᵢ, typeOf xᵢ c₁ env = Except.ok (tyᵢ, cᵢ) ∧ (tyᵢ ⊔ ty) = some ty)
-  (h₅ : (xs.mapM₁ fun x => evaluate x.val request entities) = Except.error err) :
+  (h₅ : (xs.mapM fun x => evaluate x request entities) = Except.error err) :
   err = Error.entityDoesNotExist ∨
   err = Error.extensionError ∨
   err = Error.arithBoundsError
@@ -206,24 +206,22 @@ theorem type_of_set_is_sound_err {xs : List Expr} {c₁ : Capabilities} {env : E
     simp [h₉] at h₅ <;>
     try { simp [h₅] }
     subst h₆
+    cases h₁₀ : List.mapM (fun x => evaluate x request entities) tl <;>
+    simp [h₁₀, pure, Except.pure] at h₅ ; rw [eq_comm] at h₅
+    subst h₅
     apply @type_of_set_is_sound_err
       tl c₁ env ty request entities err
       (list_is_sound_implies_tail_is_sound ih)
       h₁ h₂
       (list_is_typed_implies_tail_is_typed h₄)
-    simp [List.mapM₁, List.attach, List.mapM_pmap_subtype (evaluate · request entities)]
-    simp [List.mapM_pmap_subtype (evaluate · request entities)] at h₅
-    cases h₁₀ : List.mapM (fun x => evaluate x request entities) tl <;>
-    simp [h₁₀, pure, Except.pure] at h₅
-    subst h₅ ; rfl
-
+    exact h₁₀
 
 theorem type_of_set_is_sound_ok { xs : List Expr } { c₁ : Capabilities } { env : Environment } { request : Request } { entities : Entities } { ty : CedarType } { v : Value } { vs : List Value }
   (ih : ∀ (xᵢ : Expr), xᵢ ∈ xs → TypeOfIsSound xᵢ)
   (h₁ : CapabilitiesInvariant c₁ request entities)
   (h₂ : RequestAndEntitiesMatchEnvironment env request entities)
   (h₃ : ∀ (xᵢ : Expr), xᵢ ∈ xs → ∃ tyᵢ cᵢ, typeOf xᵢ c₁ env = Except.ok (tyᵢ, cᵢ) ∧ (tyᵢ ⊔ ty) = some ty)
-  (h₄ : (List.mapM₁ xs fun x => evaluate x.val request entities) = Except.ok vs)
+  (h₄ : (xs.mapM fun x => evaluate x request entities) = Except.ok vs)
   (h₅ : v ∈ vs):
   InstanceOfType v ty
 := by
@@ -237,7 +235,6 @@ theorem type_of_set_is_sound_ok { xs : List Expr } { c₁ : Capabilities } { env
     cases h₇ : evaluate hd request entities <;>
     simp [h₇] at h₄
     rename_i vhd
-    simp [List.mapM_pmap_subtype (evaluate · request entities)] at h₄
     cases h₈ : List.mapM (fun x => evaluate x request entities) tl <;>
     simp [h₈, pure, Except.pure] at h₄
     rename_i vtl
@@ -278,8 +275,8 @@ theorem type_of_set_is_sound {xs : List Expr} {c₁ c₂ : Capabilities} {env : 
   apply And.intro
   case left => exact empty_guarded_capabilities_invariant
   case right =>
-    simp [EvaluatesTo, evaluate]
-    cases h₆ : List.mapM₁ xs fun x => evaluate x.val request entities <;>
+    simp [EvaluatesTo, evaluate, List.mapM₁, List.attach, List.mapM_pmap_subtype (evaluate · request entities)]
+    cases h₆ : xs.mapM fun x => evaluate x request entities <;>
     simp [h₆]
     case error err =>
       simp [type_is_inhabited]

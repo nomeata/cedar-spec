@@ -140,8 +140,9 @@ theorem typeOf_of_binary_call_inversion {xs : List Expr} {c : Capabilities} {env
         simp at h₂ h₃
         simp [h₂, h₃]
       case cons hd₃ tl₃ =>
-        rw [←List.mapM'_eq_mapM, List.attach] at h₁
-        rw [List.pmap, List.mapM', justType, Except.map] at h₁
+        simp [List.attach] at h₁
+        simp [List.mapM_pmap_subtype (fun x => justType (typeOf x c env))] at h₁
+        rw [justType, Except.map] at h₁
         split at h₁ <;> simp at h₁
         rw [justType, Except.map] at h₁
         split at h₁ <;> simp at h₁
@@ -149,18 +150,7 @@ theorem typeOf_of_binary_call_inversion {xs : List Expr} {c : Capabilities} {env
         split at h₁ <;> simp at h₁
         rename_i res₁ _ _ res₂ _ _ res₃ _
         simp [pure, Except.pure] at h₁
-        cases h₂ :
-          List.mapM' (fun x => justType (typeOf x.val c env))
-          (List.pmap Subtype.mk tl₃
-          ((@List.pmap._sunfold.proof_2 Expr
-            (fun a =>
-              (fun a => a ∈ hd₁ :: hd₂ :: hd₃ :: tl₃) a) hd₃ tl₃
-                (List.pmap._sunfold.proof_2 hd₂ (hd₃ :: tl₃)
-                  (Iff.mp List.forall_mem_cons (List.attach.proof_1 (hd₁ :: hd₂ :: hd₃ :: tl₃))).right) :
-                  ∀ (x : Expr), x ∈ tl₃ →
-                  (fun a => a ∈ hd₁ :: hd₂ :: hd₃ :: tl₃) x) :
-            ∀ (x : Expr), x ∈ tl₃ → (fun a => a ∈ hd₁ :: hd₂ :: hd₃ :: tl₃) x))
-        <;> simp [h₂] at h₁
+        cases h₂ : List.mapM (fun x => justType (typeOf x c env)) tl₃ <;> simp [h₂] at h₁
 
 def IsDecimalComparator : ExtFun → Prop
   | .lessThan
@@ -317,20 +307,15 @@ theorem typeOf_of_unary_call_inversion {xs : List Expr} {c : Capabilities} {env 
       exists hd₁, res₁.snd
       simp [ok, h₃, ←h₂]
     case cons hd₂ tl₂ =>
-      rw [←List.mapM'_eq_mapM, List.attach] at h₁
-      rw [List.pmap, List.mapM', justType, Except.map] at h₁
+      simp [List.attach] at h₁
+      simp [List.mapM_pmap_subtype (fun x => justType (typeOf x c env))] at h₁
+      rw [justType, Except.map] at h₁
       split at h₁ <;> simp at h₁
       rw [justType, Except.map] at h₁
       split at h₁ <;> simp at h₁
       rename_i res₁ _ _ res₂ _
       simp [pure, Except.pure] at h₁
-      cases h₂ :
-        List.mapM' (fun x => justType (typeOf x.val c env))
-        (List.pmap Subtype.mk tl₂
-        ((@List.pmap._sunfold.proof_2 Expr (fun a => a ∈ hd₁ :: hd₂ :: tl₂) hd₂ tl₂
-            (Iff.mp List.forall_mem_cons (List.attach.proof_1 (hd₁ :: hd₂ :: tl₂))).right : ∀ (x : Expr), x ∈ tl₂ → x ∈ hd₁ :: hd₂ :: tl₂) :
-          ∀ (x : Expr), x ∈ tl₂ → x ∈ hd₁ :: hd₂ :: tl₂))
-      <;> simp [h₂] at h₁
+      cases h₂ : List.mapM (fun x => justType (typeOf x c env)) tl₂ <;> simp [h₂] at h₁
 
 theorem type_of_call_ipAddr_recognizer_inversion {xfn : ExtFun} {xs : List Expr} {c c' : Capabilities} {env : Environment} {ty : CedarType}
   (h₀ : IsIpAddrRecognizer xfn)

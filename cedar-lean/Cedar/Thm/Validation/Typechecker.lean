@@ -20,6 +20,7 @@ import Cedar.Thm.Validation.Typechecker.GetAttr
 import Cedar.Thm.Validation.Typechecker.HasAttr
 import Cedar.Thm.Validation.Typechecker.IfThenElse
 import Cedar.Thm.Validation.Typechecker.LitVar
+import Cedar.Thm.Validation.Typechecker.Record
 import Cedar.Thm.Validation.Typechecker.Set
 import Cedar.Thm.Validation.Typechecker.Or
 import Cedar.Thm.Validation.Typechecker.UnaryApp
@@ -88,9 +89,17 @@ theorem type_of_is_sound {e : Expr} {c₁ c₂ : Capabilities} {env : Environmen
       intro xᵢ hᵢ
       exact @type_of_is_sound xᵢ
     exact type_of_set_is_sound h₁ h₂ h₃ ih
-  | .record axs => sorry
+  | .record axs =>
+    have ih : ∀ axᵢ, axᵢ ∈ axs → TypeOfIsSound axᵢ.snd := by
+      intro axᵢ hᵢ
+      have _ : sizeOf axᵢ.snd < 1 + sizeOf axs := by
+        apply List.sizeOf_snd_lt_sizeOf_list hᵢ
+      exact @type_of_is_sound axᵢ.snd
+    exact type_of_record_is_sound h₁ h₂ h₃ ih
   | .call xfn xs =>
     have ih : ∀ xᵢ, xᵢ ∈ xs → TypeOfIsSound xᵢ := by
       intro xᵢ hᵢ
       exact @type_of_is_sound xᵢ
     exact type_of_call_is_sound h₁ h₂ h₃ ih
+termination_by
+  type_of_is_sound e c₁ c₂ env ty request entities _ _ _ => sizeOf e
