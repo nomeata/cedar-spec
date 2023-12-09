@@ -15,6 +15,7 @@
 -/
 
 import Cedar.Thm.Validation.Typechecker.And
+import Cedar.Thm.Validation.Typechecker.BinaryApp
 import Cedar.Thm.Validation.Typechecker.Call
 import Cedar.Thm.Validation.Typechecker.GetAttr
 import Cedar.Thm.Validation.Typechecker.HasAttr
@@ -71,13 +72,11 @@ theorem type_of_is_sound {e : Expr} {c₁ c₂ : Capabilities} {env : Environmen
     exact type_of_or_is_sound h₁ h₂ h₃ ih₁ ih₂
   | .unaryApp op₁ x₁ =>
     rcases (@type_of_is_sound x₁) with ih
-    match op₁ with
-    | .not     => exact type_of_not_is_sound h₁ h₂ h₃ ih
-    | .neg     => exact type_of_neg_is_sound h₁ h₂ h₃ ih
-    | .mulBy k => exact type_of_mulBy_is_sound h₁ h₂ h₃ ih
-    | .like p  => exact type_of_like_is_sound h₁ h₂ h₃ ih
-    | .is ety  => exact type_of_is_is_sound h₁ h₂ h₃ ih
-  | .binaryApp op₂ x₁ x₂ => sorry
+    exact type_of_unaryApp_is_sound h₁ h₂ h₃ ih
+  | .binaryApp op₂ x₁ x₂ =>
+    rcases (@type_of_is_sound x₁) with ih₁
+    rcases (@type_of_is_sound x₂) with ih₂
+    exact type_of_binaryApp_is_sound h₁ h₂ h₃ ih₁ ih₂
   | .hasAttr x₁ a =>
     rcases (@type_of_is_sound x₁) with ih
     exact type_of_hasAttr_is_sound h₁ h₂ h₃ ih
@@ -86,7 +85,7 @@ theorem type_of_is_sound {e : Expr} {c₁ c₂ : Capabilities} {env : Environmen
     exact type_of_getAttr_is_sound h₁ h₂ h₃ ih
   | .set xs =>
     have ih : ∀ xᵢ, xᵢ ∈ xs → TypeOfIsSound xᵢ := by
-      intro xᵢ hᵢ
+      intro xᵢ _
       exact @type_of_is_sound xᵢ
     exact type_of_set_is_sound h₁ h₂ h₃ ih
   | .record axs =>
@@ -98,7 +97,7 @@ theorem type_of_is_sound {e : Expr} {c₁ c₂ : Capabilities} {env : Environmen
     exact type_of_record_is_sound h₁ h₂ h₃ ih
   | .call xfn xs =>
     have ih : ∀ xᵢ, xᵢ ∈ xs → TypeOfIsSound xᵢ := by
-      intro xᵢ hᵢ
+      intro xᵢ _
       exact @type_of_is_sound xᵢ
     exact type_of_call_is_sound h₁ h₂ h₃ ih
 termination_by

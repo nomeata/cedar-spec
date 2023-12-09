@@ -98,9 +98,11 @@ For every action in the entity store, the action's ancestors are consistent
 with the ancestor information in the action store.
 -/
 def InstanceOfActionStore (entities : Entities) (as: ActionStore) : Prop :=
-  ∀ uid data, entities.find? uid = some data → as.contains uid →
-    ∃ entry, as.find? uid = some entry →
-      ∀ ancestor, ancestor ∈ data.ancestors → ancestor ∈ entry.ancestors
+  ∀ (uid : EntityUID) (entry : ActionStoreEntry),
+  Map.find? as uid = some entry →
+  ∃ data,
+    Map.find? entities uid = some data ∧
+    data.ancestors = entry.ancestors
 
 def RequestAndEntitiesMatchEnvironment (env : Environment) (request : Request) (entities : Entities) : Prop :=
   InstanceOfRequestType request env.reqty ∧
@@ -215,9 +217,18 @@ theorem instance_of_ipAddr_type_is_ipAddr {v₁ : Value} :
   rename_i ip _
   exists ip
 
-theorem instance_of_record_type_is_record {rty : RecordType} :
-  InstanceOfType v₁ (.record rty) →
-  ∃ r, v₁ = .record r
+theorem instance_of_set_type_is_set {v : Value} {ty : CedarType} :
+  InstanceOfType v (.set ty) →
+  ∃ s, v = .set s
+:= by
+  intro h₁
+  cases h₁
+  rename_i s h₁
+  exists s
+
+theorem instance_of_record_type_is_record {v : Value} {rty : RecordType} :
+  InstanceOfType v (.record rty) →
+  ∃ r, v = .record r
 := by
   intro h₁
   cases h₁

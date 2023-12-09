@@ -273,4 +273,19 @@ theorem type_of_is_is_sound {x₁ : Expr} {ety : EntityType} {c₁ c₂ : Capabi
       apply type_is_inhabited
     }
 
+theorem type_of_unaryApp_is_sound {op₁ : UnaryOp} {x₁ : Expr} {c₁ c₂ : Capabilities} {env : Environment} {ty : CedarType} {request : Request} {entities : Entities}
+  (h₁ : CapabilitiesInvariant c₁ request entities)
+  (h₂ : RequestAndEntitiesMatchEnvironment env request entities)
+  (h₃ : typeOf (Expr.unaryApp op₁ x₁) c₁ env = Except.ok (ty, c₂))
+  (ih : TypeOfIsSound x₁) :
+  GuardedCapabilitiesInvariant (Expr.unaryApp op₁ x₁) c₂ request entities ∧
+  ∃ v, EvaluatesTo (Expr.unaryApp op₁ x₁) request entities v ∧ InstanceOfType v ty
+:= by
+  match op₁ with
+  | .not     => exact type_of_not_is_sound h₁ h₂ h₃ ih
+  | .neg     => exact type_of_neg_is_sound h₁ h₂ h₃ ih
+  | .mulBy k => exact type_of_mulBy_is_sound h₁ h₂ h₃ ih
+  | .like p  => exact type_of_like_is_sound h₁ h₂ h₃ ih
+  | .is ety  => exact type_of_is_is_sound h₁ h₂ h₃ ih
+
 end Cedar.Thm

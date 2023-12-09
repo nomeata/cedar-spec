@@ -493,7 +493,7 @@ theorem insertCanonical_preserves_forallᵥ {α β γ} [LT α] [StrictLT α] [De
       apply Forall₂.cons (by exact h₃) (by exact h₄)
     case inl.inr h₅ h₆ =>
       simp [h₁, h₃] at h₅
-      rcases (StrictLT.asymmetric kv₂.fst hd₂.fst h₅) with h₈
+      rcases (StrictLT.asymmetric kv₂.fst hd₂.fst h₅) with _
       split <;> contradiction
     case inr.inl h₅ h₆ =>
       simp [h₁, h₃] at h₅ h₆
@@ -521,5 +521,17 @@ theorem canonicalize_preserves_forallᵥ {α β γ} [LT α] [StrictLT α] [Decid
     simp [canonicalize]
     rcases (canonicalize_preserves_forallᵥ p tl₁ tl₂ h₃) with h₄
     apply insertCanonical_preserves_forallᵥ h₂ h₄
+
+theorem any_of_mem {f : α → Bool} {x : α} {xs : List α}
+  (h₁ : x ∈ xs)
+  (h₂ : f x) :
+  any xs f = true
+:= by
+  cases xs <;> simp at h₁
+  case cons hd tl =>
+    simp [List.any_cons]
+    rcases h₁ with h₁ | h₁
+    case inl => subst h₁ ; simp [h₂]
+    case inr => apply Or.inr ; exists x
 
 end List
