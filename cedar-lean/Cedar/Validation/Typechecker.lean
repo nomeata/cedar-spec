@@ -114,14 +114,15 @@ def typeOfUnaryApp (op : UnaryOp) (ty : CedarType) : ResultType :=
 
 def typeOfEq (ty₁ ty₂ : CedarType) (x₁ x₂ : Expr) : ResultType :=
   match x₁, x₂ with
-  | .lit p₁, .lit p₂ => if p₁ == p₂ then ok (.bool .tt) else ok (.bool .ff)
+  | .lit (.entityUID uid₁), .lit (.entityUID uid₂) =>
+    if uid₁ == uid₂ then ok (.bool .tt) else ok (.bool .ff)
   | _, _ =>
     match ty₁ ⊔ ty₂ with
     | .some _ => ok (.bool .anyBool)
     | .none   =>
-    match ty₁, ty₂ with
-    | .entity _, .entity _ => ok (.bool .ff)
-    | _, _                 => err (.lubErr ty₁ ty₂)
+      match ty₁, ty₂ with
+      | .entity _, .entity _ => ok (.bool .ff)
+      | _, _                 => err (.lubErr ty₁ ty₂)
 
 def entityUID? : Expr → Option EntityUID
   | .lit (.entityUID uid) => .some uid

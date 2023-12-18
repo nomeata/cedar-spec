@@ -31,8 +31,8 @@ theorem type_of_eq_inversion {x₁ x₂ : Expr} {c c' : Capabilities} {env : Env
   (h₁ : typeOf (Expr.binaryApp .eq x₁ x₂) c env = Except.ok (ty, c')) :
   c' = ∅ ∧
   match x₁, x₂ with
-  | .lit p₁, .lit p₂ =>
-    if p₁ = p₂ then ty = (.bool .tt) else ty = (.bool .ff)
+  | .lit (.entityUID uid₁), .lit (.entityUID uid₂) =>
+    if uid₁ = uid₂ then ty = (.bool .tt) else ty = (.bool .ff)
   | _, _ =>
     ∃ ty₁ c₁ ty₂ c₂,
       typeOf x₁ c env = Except.ok (ty₁, c₁) ∧
@@ -123,12 +123,12 @@ theorem type_of_eq_is_sound {x₁ x₂ : Expr} {c₁ c₂ : Capabilities} {env :
         subst heq
         simp [EvaluatesTo, evaluate, apply₂]
         exact true_is_instance_of_tt
-      case inr p₁ p₂ heq _ _ =>
+      case inr uid₁ uid₂ heq _ _ =>
         simp [EvaluatesTo, evaluate, apply₂]
-        cases h₃ : Value.prim p₁ == Value.prim p₂ <;>
+        cases h₃ : Value.prim (.entityUID uid₁) == Value.prim (.entityUID uid₂) <;>
         simp only [beq_iff_eq, beq_eq_false_iff_ne, ne_eq, Value.prim.injEq] at h₃
         case false => exact false_is_instance_of_ff
-        case true  => contradiction
+        case true  => cases h₃ ; contradiction
     case h_2 =>
       rcases hty with ⟨ty₁, c₁', ty₂, c₂', ht₁, ht₂, hty⟩
       specialize ih₁ h₁ h₂ ht₁ ; rcases ih₁ with ⟨_, v₁, ih₁⟩
