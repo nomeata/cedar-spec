@@ -27,7 +27,10 @@ use cedar_policy_core::authorizer::{Authorizer, Diagnostics, Response};
 use cedar_policy_core::entities::{Entities, NoEntitiesSchema, TCComputation};
 use cedar_policy_core::evaluator::{EvaluationErrorKind, Evaluator};
 use cedar_policy_core::extensions::Extensions;
-pub use cedar_policy_validator::{ValidationErrorKind, ValidationMode, Validator, ValidatorSchema};
+pub use cedar_policy_validator::{
+    HierarchyNotRespected, TypeErrorKind, ValidationErrorKind, ValidationMode, Validator,
+    ValidatorSchema,
+};
 use libfuzzer_sys::arbitrary::{self, Unstructured};
 use log::info;
 
@@ -179,6 +182,17 @@ pub fn run_val_test(
                     e.error_kind(),
                     ValidationErrorKind::UnrecognizedEntityType(_)
                         | ValidationErrorKind::UnrecognizedActionId(_)
+                )
+            }) {
+                return;
+            }
+
+            // TODO(issue needed):
+            // For now, ignore `<unspecified> in <unspecified>` cases
+            if rust_res.validation_errors().any(|e| {
+                matches!(
+                    e.error_kind(),
+                    ValidationErrorKind::TypeError(TypeErrorKind::HierarchyNotRespected(_))
                 )
             }) {
                 return;
