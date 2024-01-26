@@ -1,0 +1,34 @@
+{
+  "r::A0033::r::r::r::AhhdZ::r": {
+    "commonTypes": {},
+    "entityTypes": {
+      "wQ": {
+        "memberOfTypes": [],
+        "shape": {
+          "type": "Record",
+          "attributes": {},
+          "additionalAttributes": false
+        }
+      }
+    },
+    "actions": {
+      "action": {
+        "attributes": null,
+        "appliesTo": {
+          "resourceTypes": [
+            "wQ"
+          ],
+          "principalTypes": [
+            "wQ"
+          ],
+          "context": {
+            "type": "Record",
+            "attributes": {},
+            "additionalAttributes": false
+          }
+        },
+        "memberOf": null
+      }
+    }
+  }
+}

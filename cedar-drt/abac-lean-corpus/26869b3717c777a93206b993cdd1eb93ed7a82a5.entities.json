@@ -1,0 +1,18 @@
+[
+  {
+    "uid": {
+      "type": "hNNNN::a",
+      "id": "b"
+    },
+    "attrs": {},
+    "parents": []
+  },
+  {
+    "uid": {
+      "type": "hNNNN::a",
+      "id": ""
+    },
+    "attrs": {},
+    "parents": []
+  }
+]

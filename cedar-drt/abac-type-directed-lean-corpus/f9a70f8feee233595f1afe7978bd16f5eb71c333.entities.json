@@ -1,0 +1,24 @@
+[
+  {
+    "uid": {
+      "type": "a",
+      "id": "66"
+    },
+    "attrs": {
+      "BssD": false,
+      "zppp": false
+    },
+    "parents": []
+  },
+  {
+    "uid": {
+      "type": "a",
+      "id": "6"
+    },
+    "attrs": {
+      "BssD": false,
+      "zppp": false
+    },
+    "parents": []
+  }
+]

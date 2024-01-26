@@ -1,0 +1,43 @@
+{
+  "": {
+    "commonTypes": {},
+    "entityTypes": {
+      "zp": {
+        "memberOfTypes": [],
+        "shape": {
+          "type": "Record",
+          "attributes": {},
+          "additionalAttributes": false
+        }
+      },
+      "q": {
+        "memberOfTypes": [],
+        "shape": {
+          "type": "Record",
+          "attributes": {},
+          "additionalAttributes": false
+        }
+      }
+    },
+    "actions": {
+      "action": {
+        "attributes": null,
+        "appliesTo": {
+          "resourceTypes": [
+            "q",
+            "zp"
+          ],
+          "principalTypes": [
+            "zp"
+          ],
+          "context": {
+            "type": "Record",
+            "attributes": {},
+            "additionalAttributes": false
+          }
+        },
+        "memberOf": []
+      }
+    }
+  }
+}

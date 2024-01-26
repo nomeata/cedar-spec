@@ -1,0 +1,17 @@
+[
+  {
+    "uid": {
+      "type": "lCCCCssssss0sts",
+      "id": ""
+    },
+    "attrs": {
+      "B": {
+        "__extn": {
+          "fn": "ip",
+          "arg": "0.0.0.0"
+        }
+      }
+    },
+    "parents": []
+  }
+]

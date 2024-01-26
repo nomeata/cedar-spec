@@ -1,0 +1,29 @@
+[
+  {
+    "uid": {
+      "type": "a",
+      "id": ""
+    },
+    "attrs": {
+      "D333": {
+        "__extn": {
+          "fn": "decimal",
+          "arg": "0.0"
+        }
+      },
+      "A": {
+        "__extn": {
+          "fn": "decimal",
+          "arg": "355.2822"
+        }
+      },
+      "r": {
+        "__extn": {
+          "fn": "decimal",
+          "arg": "0.0"
+        }
+      }
+    },
+    "parents": []
+  }
+]

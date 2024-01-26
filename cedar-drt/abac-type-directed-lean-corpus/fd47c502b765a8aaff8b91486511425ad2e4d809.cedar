@@ -1,0 +1,19 @@
+@A("")
+@Z55555555555e("")
+@Z555555n05533("")
+@m3333333333333("")
+@q("")
+@q30s6kkk0000000("")
+@r("")
+@yVVVVVV("")
+@z5555("")
+@zVN33("")
+@zVV("")
+@zVVVT("")
+permit(
+  principal,
+  action,
+  resource
+) when {
+  true
+};

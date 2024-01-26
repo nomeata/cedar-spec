@@ -1,0 +1,7 @@
+permit(
+  principal is a in a::"",
+  action == Action::"action",
+  resource is a in a::""
+) when {
+  ((true && ([].contains([]))) && false) && (a::"" in action)
+};

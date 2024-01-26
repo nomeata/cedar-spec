@@ -1,0 +1,42 @@
+[
+  {
+    "uid": {
+      "type": "a",
+      "id": "n\u0002"
+    },
+    "attrs": {
+      "Bppt": [
+        [],
+        [
+          [],
+          [
+            false
+          ]
+        ],
+        [
+          [
+            false
+          ],
+          [
+            true
+          ]
+        ]
+      ]
+    },
+    "parents": []
+  },
+  {
+    "uid": {
+      "type": "a",
+      "id": ""
+    },
+    "attrs": {
+      "Bppt": [
+        [
+          []
+        ]
+      ]
+    },
+    "parents": []
+  }
+]

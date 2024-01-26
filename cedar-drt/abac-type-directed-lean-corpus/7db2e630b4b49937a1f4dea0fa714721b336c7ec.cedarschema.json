@@ -1,0 +1,45 @@
+{
+  "A::A": {
+    "commonTypes": {},
+    "entityTypes": {
+      "A": {
+        "memberOfTypes": [],
+        "shape": {
+          "type": "Record",
+          "attributes": {},
+          "additionalAttributes": false
+        }
+      }
+    },
+    "actions": {
+      "action": {
+        "attributes": null,
+        "appliesTo": {
+          "resourceTypes": [
+            "A"
+          ],
+          "principalTypes": [
+            "A"
+          ],
+          "context": {
+            "type": "Record",
+            "attributes": {
+              "B": {
+                "type": "Extension",
+                "name": "ipaddr",
+                "required": false
+              },
+              "C": {
+                "type": "Entity",
+                "name": "A::A::A",
+                "required": false
+              }
+            },
+            "additionalAttributes": false
+          }
+        },
+        "memberOf": []
+      }
+    }
+  }
+}

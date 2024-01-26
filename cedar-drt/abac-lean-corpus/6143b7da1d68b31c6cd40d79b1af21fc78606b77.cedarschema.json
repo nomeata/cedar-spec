@@ -1,0 +1,46 @@
+{
+  "r::r::r::q": {
+    "commonTypes": {},
+    "entityTypes": {
+      "w": {
+        "memberOfTypes": [],
+        "shape": {
+          "type": "Record",
+          "attributes": {},
+          "additionalAttributes": false
+        }
+      },
+      "r": {
+        "memberOfTypes": [
+          "w"
+        ],
+        "shape": {
+          "type": "Record",
+          "attributes": {},
+          "additionalAttributes": false
+        }
+      }
+    },
+    "actions": {
+      "action": {
+        "attributes": null,
+        "appliesTo": {
+          "resourceTypes": [
+            "r",
+            "w"
+          ],
+          "principalTypes": [
+            "r",
+            "w"
+          ],
+          "context": {
+            "type": "Record",
+            "attributes": {},
+            "additionalAttributes": false
+          }
+        },
+        "memberOf": null
+      }
+    }
+  }
+}

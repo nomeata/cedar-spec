@@ -1,0 +1,18 @@
+[
+  {
+    "uid": {
+      "type": "r::Bss20ssss::m::a",
+      "id": ""
+    },
+    "attrs": {
+      "w": {
+        "__entity": {
+          "type": "r::Bss20ssss::m::a",
+          "id": ""
+        }
+      },
+      "A": ""
+    },
+    "parents": []
+  }
+]

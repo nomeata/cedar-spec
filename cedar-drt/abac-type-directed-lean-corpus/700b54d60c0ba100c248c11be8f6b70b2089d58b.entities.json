@@ -1,0 +1,18 @@
+[
+  {
+    "uid": {
+      "type": "a",
+      "id": ""
+    },
+    "attrs": {
+      "wIIs": [],
+      "wnpg": {
+        "__extn": {
+          "fn": "decimal",
+          "arg": "0.0"
+        }
+      }
+    },
+    "parents": []
+  }
+]

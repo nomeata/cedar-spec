@@ -1,0 +1,23 @@
+[
+  {
+    "uid": {
+      "type": "a",
+      "id": ""
+    },
+    "attrs": {
+      "rs3g": {
+        "__extn": {
+          "fn": "decimal",
+          "arg": "0.0"
+        }
+      },
+      "Bss3": {
+        "__extn": {
+          "fn": "decimal",
+          "arg": "0.0"
+        }
+      }
+    },
+    "parents": []
+  }
+]

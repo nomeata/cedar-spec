@@ -1,0 +1,17 @@
+[
+  {
+    "uid": {
+      "type": "a",
+      "id": ""
+    },
+    "attrs": {
+      "BssT": {
+        "__extn": {
+          "fn": "decimal",
+          "arg": "0.2303"
+        }
+      }
+    },
+    "parents": []
+  }
+]

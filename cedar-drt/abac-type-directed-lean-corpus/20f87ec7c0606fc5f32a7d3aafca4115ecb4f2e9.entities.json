@@ -1,0 +1,35 @@
+[
+  {
+    "uid": {
+      "type": "A",
+      "id": ""
+    },
+    "attrs": {},
+    "parents": [
+      {
+        "type": "r",
+        "id": ""
+      },
+      {
+        "type": "Z333",
+        "id": ""
+      }
+    ]
+  },
+  {
+    "uid": {
+      "type": "r",
+      "id": ""
+    },
+    "attrs": {},
+    "parents": []
+  },
+  {
+    "uid": {
+      "type": "Z333",
+      "id": ""
+    },
+    "attrs": {},
+    "parents": []
+  }
+]

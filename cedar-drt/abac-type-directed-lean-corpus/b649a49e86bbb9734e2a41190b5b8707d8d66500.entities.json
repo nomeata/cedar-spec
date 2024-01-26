@@ -1,0 +1,64 @@
+[
+  {
+    "uid": {
+      "type": "a",
+      "id": "n"
+    },
+    "attrs": {
+      "BcpD": [
+        [
+          [],
+          [
+            false
+          ]
+        ],
+        [
+          [],
+          [
+            false,
+            true
+          ]
+        ],
+        [
+          [
+            false
+          ],
+          [
+            false,
+            true
+          ]
+        ]
+      ],
+      "M": false
+    },
+    "parents": []
+  },
+  {
+    "uid": {
+      "type": "a",
+      "id": ""
+    },
+    "attrs": {
+      "BcpD": [
+        [
+          [],
+          [
+            false,
+            true
+          ]
+        ],
+        [
+          [
+            false,
+            true
+          ],
+          [
+            true
+          ]
+        ]
+      ],
+      "M": false
+    },
+    "parents": []
+  }
+]

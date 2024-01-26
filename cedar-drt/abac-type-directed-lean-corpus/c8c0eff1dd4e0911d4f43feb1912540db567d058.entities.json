@@ -1,0 +1,70 @@
+[
+  {
+    "uid": {
+      "type": "a",
+      "id": "nnnnnn\u0002"
+    },
+    "attrs": {
+      "BcpD": [
+        [],
+        [
+          [
+            false
+          ],
+          [
+            false,
+            true
+          ]
+        ]
+      ],
+      "M": [
+        [
+          {
+            "__entity": {
+              "type": "a",
+              "id": ""
+            }
+          }
+        ],
+        [
+          {
+            "__entity": {
+              "type": "a",
+              "id": "nnnnnn\u0002"
+            }
+          }
+        ]
+      ]
+    },
+    "parents": []
+  },
+  {
+    "uid": {
+      "type": "a",
+      "id": ""
+    },
+    "attrs": {
+      "BcpD": [
+        [],
+        [
+          [],
+          [
+            true
+          ]
+        ]
+      ],
+      "M": [
+        [],
+        [
+          {
+            "__entity": {
+              "type": "a",
+              "id": "nnnnnn\u0002"
+            }
+          }
+        ]
+      ]
+    },
+    "parents": []
+  }
+]

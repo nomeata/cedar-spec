@@ -1,0 +1,18 @@
+[
+  {
+    "uid": {
+      "type": "hhhhh::Bssh",
+      "id": ""
+    },
+    "attrs": {
+      "r": false,
+      "Ahhhh": {
+        "__entity": {
+          "type": "hhhhh::Bssh",
+          "id": ""
+        }
+      }
+    },
+    "parents": []
+  }
+]

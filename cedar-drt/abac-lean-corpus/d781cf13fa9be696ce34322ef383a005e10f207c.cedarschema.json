@@ -1,0 +1,34 @@
+{
+  "q": {
+    "commonTypes": {},
+    "entityTypes": {
+      "A0gAK": {
+        "memberOfTypes": [],
+        "shape": {
+          "type": "Record",
+          "attributes": {},
+          "additionalAttributes": false
+        }
+      }
+    },
+    "actions": {
+      "": {
+        "attributes": null,
+        "appliesTo": {
+          "resourceTypes": [
+            "A0gAK"
+          ],
+          "principalTypes": [
+            "A0gAK"
+          ],
+          "context": {
+            "type": "Record",
+            "attributes": {},
+            "additionalAttributes": false
+          }
+        },
+        "memberOf": null
+      }
+    }
+  }
+}

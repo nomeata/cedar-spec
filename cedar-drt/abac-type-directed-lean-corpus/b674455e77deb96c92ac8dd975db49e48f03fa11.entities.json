@@ -1,0 +1,25 @@
+[
+  {
+    "uid": {
+      "type": "a",
+      "id": ""
+    },
+    "attrs": {
+      "z": {
+        "__extn": {
+          "fn": "ip",
+          "arg": "0.0.0.0"
+        }
+      },
+      "r": "",
+      "Bppp": {
+        "__extn": {
+          "fn": "decimal",
+          "arg": "0.0"
+        }
+      },
+      "BrrpDnp": false
+    },
+    "parents": []
+  }
+]

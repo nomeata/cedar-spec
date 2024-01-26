@@ -1,0 +1,26 @@
+[
+  {
+    "uid": {
+      "type": "a",
+      "id": "(\u0010nnn\u0002"
+    },
+    "attrs": {
+      "BcpD": [
+        [],
+        [
+          [
+            false
+          ]
+        ],
+        [
+          [
+            false,
+            true
+          ]
+        ]
+      ],
+      "M": []
+    },
+    "parents": []
+  }
+]

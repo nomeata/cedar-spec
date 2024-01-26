@@ -1,0 +1,35 @@
+[
+  {
+    "uid": {
+      "type": "a",
+      "id": ""
+    },
+    "attrs": {
+      "r": {
+        "__entity": {
+          "type": "a",
+          "id": ""
+        }
+      },
+      "z": {
+        "__extn": {
+          "fn": "decimal",
+          "arg": "0.0"
+        }
+      },
+      "NBAAAuuuuuuuuuuuu": {
+        "__entity": {
+          "type": "a",
+          "id": ""
+        }
+      },
+      "N": {
+        "__extn": {
+          "fn": "decimal",
+          "arg": "0.0"
+        }
+      }
+    },
+    "parents": []
+  }
+]

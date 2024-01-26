@@ -1,0 +1,8 @@
+@Ahhhh("j")
+permit(
+  principal == a::"\0",
+  action in [Action::"action"],
+  resource == a::"\0"
+) when {
+  (true && principal) && principal
+};

@@ -1,0 +1,40 @@
+{
+  "": {
+    "commonTypes": {},
+    "entityTypes": {
+      "_qrMAss": {
+        "memberOfTypes": [],
+        "shape": {
+          "type": "Record",
+          "attributes": {
+            "Bm0s": {
+              "type": "Extension",
+              "name": "ipaddr",
+              "required": false
+            }
+          },
+          "additionalAttributes": false
+        }
+      }
+    },
+    "actions": {
+      "action": {
+        "attributes": null,
+        "appliesTo": {
+          "resourceTypes": [
+            "_qrMAss"
+          ],
+          "principalTypes": [
+            "_qrMAss"
+          ],
+          "context": {
+            "type": "Record",
+            "attributes": {},
+            "additionalAttributes": false
+          }
+        },
+        "memberOf": []
+      }
+    }
+  }
+}

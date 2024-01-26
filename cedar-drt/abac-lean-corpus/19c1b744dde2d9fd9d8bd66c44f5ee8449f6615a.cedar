@@ -1,0 +1,28 @@
+@AhhY("")
+@J2eeh("jji")
+@K("\n\n\n")
+@KAAYY1000YY("")
+@L20("")
+@LLL("")
+@LXY("")
+@LYA("\n\n\n\u{2}\0\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nec\ni\njjjjbjjj\n\n\n")
+@LYX("")
+@LYY("ߓrl")
+@V00("\0")
+@Z("j")
+@Zh9("")
+@gWWWWWXYYYYXYYYYY("")
+@pLL000000000("")
+@pLLAAAgAhhhh("bjjjjsAgg")
+@pLLLLLLL3LLL("")
+@pLLLLLLLLLLL("")
+@pLejLLLLLLLL("")
+@pwuuuuuuuAAa("ei\njjjjbjjjjsAgg")
+@r("\u{7f}")
+permit(
+  principal,
+  action,
+  resource
+) when {
+  true
+};

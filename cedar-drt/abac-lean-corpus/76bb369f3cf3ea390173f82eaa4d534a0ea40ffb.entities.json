@@ -1,0 +1,32 @@
+[
+  {
+    "uid": {
+      "type": "A33::r::q::a",
+      "id": ""
+    },
+    "attrs": {
+      "KKhh": {
+        "__entity": {
+          "type": "A33::r::q::a",
+          "id": "jj"
+        }
+      }
+    },
+    "parents": []
+  },
+  {
+    "uid": {
+      "type": "A33::r::q::a",
+      "id": "jj"
+    },
+    "attrs": {
+      "KKhh": {
+        "__entity": {
+          "type": "A33::r::q::a",
+          "id": "jj"
+        }
+      }
+    },
+    "parents": []
+  }
+]

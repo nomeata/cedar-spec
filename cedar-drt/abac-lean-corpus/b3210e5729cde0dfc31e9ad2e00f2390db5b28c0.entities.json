@@ -1,0 +1,18 @@
+[
+  {
+    "uid": {
+      "type": "a",
+      "id": ""
+    },
+    "attrs": {
+      "K333": false,
+      "r": {
+        "__entity": {
+          "type": "a",
+          "id": ""
+        }
+      }
+    },
+    "parents": []
+  }
+]

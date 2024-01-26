@@ -1,0 +1,27 @@
+[
+  {
+    "uid": {
+      "type": "a",
+      "id": ""
+    },
+    "attrs": {
+      "_hhh": [
+        [
+          [],
+          [
+            false
+          ]
+        ]
+      ]
+    },
+    "parents": []
+  },
+  {
+    "uid": {
+      "type": "a",
+      "id": "."
+    },
+    "attrs": {},
+    "parents": []
+  }
+]

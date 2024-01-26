@@ -1,0 +1,8 @@
+@qSssssss("666666666")
+permit(
+  principal == a::"",
+  action == Action::"action",
+  resource == a::""
+) when {
+  true && (true || ((!(9223372036854775807 <= 9223372036854775807)) || true))
+};

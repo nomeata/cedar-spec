@@ -1,0 +1,8 @@
+@Ahf20("\0")
+forbid(
+  principal,
+  action in [Action::"action"],
+  resource
+) when {
+  true && principal
+};

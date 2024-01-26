@@ -1,0 +1,34 @@
+{
+  "_svpnmr": {
+    "commonTypes": {},
+    "entityTypes": {
+      "pVVVVVVVCC": {
+        "memberOfTypes": [],
+        "shape": {
+          "type": "Record",
+          "attributes": {},
+          "additionalAttributes": false
+        }
+      }
+    },
+    "actions": {
+      "action": {
+        "attributes": null,
+        "appliesTo": {
+          "resourceTypes": [
+            "pVVVVVVVCC"
+          ],
+          "principalTypes": [
+            "pVVVVVVVCC"
+          ],
+          "context": {
+            "type": "Record",
+            "attributes": {},
+            "additionalAttributes": false
+          }
+        },
+        "memberOf": []
+      }
+    }
+  }
+}

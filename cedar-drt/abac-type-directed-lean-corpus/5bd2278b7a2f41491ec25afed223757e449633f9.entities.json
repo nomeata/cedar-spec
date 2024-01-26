@@ -1,0 +1,64 @@
+[
+  {
+    "uid": {
+      "type": "a",
+      "id": "66z3nnn"
+    },
+    "attrs": {
+      "zcpD": [
+        [],
+        [
+          [],
+          [
+            false
+          ]
+        ]
+      ],
+      "M": [
+        [
+          {
+            "__entity": {
+              "type": "a",
+              "id": ""
+            }
+          },
+          {
+            "__entity": {
+              "type": "a",
+              "id": "66z3nnn"
+            }
+          }
+        ]
+      ]
+    },
+    "parents": []
+  },
+  {
+    "uid": {
+      "type": "a",
+      "id": ""
+    },
+    "attrs": {
+      "zcpD": [
+        [],
+        [
+          [],
+          [
+            true
+          ]
+        ]
+      ],
+      "M": [
+        [
+          {
+            "__entity": {
+              "type": "a",
+              "id": ""
+            }
+          }
+        ]
+      ]
+    },
+    "parents": []
+  }
+]

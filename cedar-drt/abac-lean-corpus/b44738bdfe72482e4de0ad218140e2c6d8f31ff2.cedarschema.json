@@ -1,0 +1,40 @@
+{
+  "": {
+    "commonTypes": {},
+    "entityTypes": {
+      "_gAh": {
+        "memberOfTypes": [],
+        "shape": {
+          "type": "Record",
+          "attributes": {},
+          "additionalAttributes": false
+        }
+      }
+    },
+    "actions": {
+      "action": {
+        "attributes": null,
+        "appliesTo": {
+          "resourceTypes": [
+            "_gAh"
+          ],
+          "principalTypes": [
+            "_gAh"
+          ],
+          "context": {
+            "type": "Record",
+            "attributes": {
+              "r03X": {
+                "type": "Entity",
+                "name": "_gAh",
+                "required": true
+              }
+            },
+            "additionalAttributes": false
+          }
+        },
+        "memberOf": null
+      }
+    }
+  }
+}

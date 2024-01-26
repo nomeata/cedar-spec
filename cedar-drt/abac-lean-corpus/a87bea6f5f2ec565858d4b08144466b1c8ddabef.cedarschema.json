@@ -1,0 +1,34 @@
+{
+  "QKgFFFFcd": {
+    "commonTypes": {},
+    "entityTypes": {
+      "Kgb333VXhzFFFFh": {
+        "memberOfTypes": [],
+        "shape": {
+          "type": "Record",
+          "attributes": {},
+          "additionalAttributes": false
+        }
+      }
+    },
+    "actions": {
+      "action": {
+        "attributes": null,
+        "appliesTo": {
+          "resourceTypes": [
+            "Kgb333VXhzFFFFh"
+          ],
+          "principalTypes": [
+            "Kgb333VXhzFFFFh"
+          ],
+          "context": {
+            "type": "Record",
+            "attributes": {},
+            "additionalAttributes": false
+          }
+        },
+        "memberOf": null
+      }
+    }
+  }
+}

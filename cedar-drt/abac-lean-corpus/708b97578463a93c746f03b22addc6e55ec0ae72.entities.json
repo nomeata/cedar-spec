@@ -1,0 +1,24 @@
+[
+  {
+    "uid": {
+      "type": "A::a",
+      "id": ""
+    },
+    "attrs": {
+      "Kgc0": false,
+      "_": {}
+    },
+    "parents": []
+  },
+  {
+    "uid": {
+      "type": "A::a",
+      "id": "jj"
+    },
+    "attrs": {
+      "Kgc0": false,
+      "_": {}
+    },
+    "parents": []
+  }
+]

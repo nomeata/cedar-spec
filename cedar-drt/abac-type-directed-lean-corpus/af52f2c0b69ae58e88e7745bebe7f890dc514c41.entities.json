@@ -1,0 +1,19 @@
+[
+  {
+    "uid": {
+      "type": "r::Bs088::r::a",
+      "id": ""
+    },
+    "attrs": {
+      "Bsss": [
+        {
+          "__entity": {
+            "type": "r::Bs088::r::a",
+            "id": ""
+          }
+        }
+      ]
+    },
+    "parents": []
+  }
+]

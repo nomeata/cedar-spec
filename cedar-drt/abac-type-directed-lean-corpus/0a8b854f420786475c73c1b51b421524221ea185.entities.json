@@ -1,0 +1,17 @@
+[
+  {
+    "uid": {
+      "type": "Bssn009r",
+      "id": ""
+    },
+    "attrs": {
+      "tcsssssC0ss3st": {
+        "__extn": {
+          "fn": "ip",
+          "arg": "0.0.0.0"
+        }
+      }
+    },
+    "parents": []
+  }
+]

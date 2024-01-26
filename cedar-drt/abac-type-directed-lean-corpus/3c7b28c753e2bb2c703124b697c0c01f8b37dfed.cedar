@@ -1,0 +1,10 @@
+@W("")
+@m("")
+@r("\0")
+permit(
+  principal,
+  action,
+  resource
+) when {
+  true
+};

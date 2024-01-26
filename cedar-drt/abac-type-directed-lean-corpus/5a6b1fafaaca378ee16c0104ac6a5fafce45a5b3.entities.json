@@ -1,0 +1,29 @@
+[
+  {
+    "uid": {
+      "type": "a",
+      "id": ""
+    },
+    "attrs": {
+      "m_ss": []
+    },
+    "parents": []
+  },
+  {
+    "uid": {
+      "type": "a",
+      "id": "333"
+    },
+    "attrs": {
+      "m_ss": [
+        {
+          "__entity": {
+            "type": "a",
+            "id": ""
+          }
+        }
+      ]
+    },
+    "parents": []
+  }
+]

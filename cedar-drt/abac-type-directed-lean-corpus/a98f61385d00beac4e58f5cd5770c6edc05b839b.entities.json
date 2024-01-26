@@ -1,0 +1,35 @@
+[
+  {
+    "uid": {
+      "type": "a",
+      "id": ""
+    },
+    "attrs": {
+      "z": {
+        "__entity": {
+          "type": "a",
+          "id": ""
+        }
+      },
+      "A": {
+        "__entity": {
+          "type": "a",
+          "id": ""
+        }
+      },
+      "Nuuuuuuu": {
+        "__entity": {
+          "type": "a",
+          "id": ""
+        }
+      },
+      "N": {
+        "__entity": {
+          "type": "a",
+          "id": ""
+        }
+      }
+    },
+    "parents": []
+  }
+]

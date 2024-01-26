@@ -1,0 +1,32 @@
+[
+  {
+    "uid": {
+      "type": "A::a",
+      "id": "jjjjjj"
+    },
+    "attrs": {
+      "_hhh": {
+        "__entity": {
+          "type": "A::a",
+          "id": "jjjjjj"
+        }
+      }
+    },
+    "parents": []
+  },
+  {
+    "uid": {
+      "type": "A::a",
+      "id": "kj"
+    },
+    "attrs": {
+      "_hhh": {
+        "__entity": {
+          "type": "A::a",
+          "id": "jjjjjj"
+        }
+      }
+    },
+    "parents": []
+  }
+]

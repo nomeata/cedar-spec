@@ -1,0 +1,57 @@
+{
+  "": {
+    "commonTypes": {},
+    "entityTypes": {
+      "M": {
+        "memberOfTypes": [],
+        "shape": {
+          "type": "Record",
+          "attributes": {
+            "z": {
+              "type": "Set",
+              "element": {
+                "type": "Set",
+                "element": {
+                  "type": "Set",
+                  "element": {
+                    "type": "Long"
+                  }
+                }
+              },
+              "required": true
+            }
+          },
+          "additionalAttributes": false
+        }
+      },
+      "BcpD": {
+        "memberOfTypes": [],
+        "shape": {
+          "type": "Record",
+          "attributes": {},
+          "additionalAttributes": false
+        }
+      }
+    },
+    "actions": {
+      "_ocnct": {
+        "attributes": null,
+        "appliesTo": {
+          "resourceTypes": [
+            "BcpD"
+          ],
+          "principalTypes": [
+            "M",
+            "BcpD"
+          ],
+          "context": {
+            "type": "Record",
+            "attributes": {},
+            "additionalAttributes": false
+          }
+        },
+        "memberOf": []
+      }
+    }
+  }
+}
